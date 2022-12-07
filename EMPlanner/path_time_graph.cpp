@@ -1,20 +1,20 @@
-#include "path_time_graph.h"
+#include "path_time_graph.hpp"
 
+namespace ADPlanning {
 PathTimeGraph::PathTimeGraph(const ReferenceLine &reference_line,
                              const EMPlannerConfig &emplaner_conf) {
   reference_line_ = reference_line;
   config_ = emplaner_conf;
 
-  //初始化根据参考线，以自车的投影点为原点，生产sl
+  // 初始化根据参考线，以自车的投影点为原点，生产sl
   InitSAxis(reference_line, &sl_reference_line_);
 }
 
 void PathTimeGraph::InitSAxis(const ReferenceLine &reference_line,
                               std::vector<SLPoint> *sl_reference_line) {
-
-  //初始化根据参考线，以自车的投影点为原点，生成sl
+  // 初始化根据参考线，以自车的投影点为原点，生成sl
   auto reference_points = reference_line.reference_points();
-  //需要知道match在参考线的索引(而不是全局)
+  // 需要知道match在参考线的索引(而不是全局)
   auto host_match_index = reference_line.match_point_index();
   auto host_match_point = reference_line.host_match_point();
   auto host_project_point = reference_line.host_project_point();
@@ -29,8 +29,8 @@ void PathTimeGraph::InitSAxis(const ReferenceLine &reference_line,
              pow(reference_points[i].y - reference_points[i - 1].y, 2)) +
         (*sl_reference_line)[i - 1].s;
   }
-  //再计算以轨迹起点到frenet_path的坐标原点的弧长，记为s0，再用s[i] - s0
-  //就是最终的结果
+  // 再计算以轨迹起点到frenet_path的坐标原点的弧长，记为s0，再用s[i] - s0
+  // 就是最终的结果
 
   double s_host_match = (*sl_reference_line)[host_match_index].s;
 
@@ -58,15 +58,15 @@ void PathTimeGraph::InitSAxis(const ReferenceLine &reference_line,
 
 /*-------------------------------------设置自车位置和障碍物部分-------------------------------------------------------------*/
 void PathTimeGraph::SetStartPointSl(TrajectoryPoint plan_start_point) {
-  //计算投影
-  //坐标转换
+  // 计算投影
+  // 坐标转换
   std::vector<MapPoint> map_points;
 
   map_points.resize(1);
   map_points[0].x = plan_start_point.x;
   map_points[0].y = plan_start_point.y;
 
-  //定义变量，用于存储计算结果
+  // 定义变量，用于存储计算结果
   std::vector<ReferencePoint> start_match_points, start_project_points;
 
   ReferenceLineProvider::FindMatchAndProjectPoint(reference_line_, map_points,
@@ -79,7 +79,7 @@ void PathTimeGraph::SetStartPointSl(TrajectoryPoint plan_start_point) {
                    start_match_points, start_project_points, points_fcs);
   sl_plan_start_ = points_fcs.front();
 
-  //调试
+  // 调试
   sl_plan_start_.s = 0;
   sl_plan_start_.l = 0;
 
@@ -100,14 +100,14 @@ void PathTimeGraph::SetStaticObstaclesSl(
     map_points[i].x = static_obstacles[i].x;
     map_points[i].y = static_obstacles[i].y;
   }
-  //定义变量，用于存储计算结果
+  // 定义变量，用于存储计算结果
   std::vector<ReferencePoint> obstacles_match_points, obstacles_project_points;
 
   ReferenceLineProvider::FindMatchAndProjectPoint(reference_line_, map_points,
                                                   0, 3, obstacles_match_points,
                                                   obstacles_project_points);
 
-  //此部分比较妥协，暂时使用这种赋值循环，解决障碍物信息和参数不一致得到的问题
+  // 此部分比较妥协，暂时使用这种赋值循环，解决障碍物信息和参数不一致得到的问题
   std::vector<TrajectoryPoint> traj_points;
 
   traj_points.resize(size);
@@ -124,37 +124,36 @@ void PathTimeGraph::SetStaticObstaclesSl(
                    obstacles_match_points, obstacles_project_points,
                    sl_static_obstacles_);
 
-  //调试
+  // 调试
   sl_static_obstacles_.resize(1);
   sl_static_obstacles_[0].s = 30;
   sl_static_obstacles_[0].l = -0.5;
   sl_static_obstacles_[0].dl_ds = 0;
   sl_static_obstacles_[0].ddl_ds = 0;
 }
-//需要加深理解，引用，指针作为参数，对原来变量的影响
+// 需要加深理解，引用，指针作为参数，对原来变量的影响
 //--------------------------------------坐标变换-------------------------------------------------
 void PathTimeGraph::Cartesian2Frenet(
-    const ReferenceLine &reference_line,             //参考线
-    const std::vector<SLPoint> &sl_reference_line,   //参考线的sl值
-    const std::vector<TrajectoryPoint> &points_wcs,  //待转换的点
-    const std::vector<ReferencePoint> &match_points, //匹配点
+    const ReferenceLine &reference_line,              // 参考线
+    const std::vector<SLPoint> &sl_reference_line,    // 参考线的sl值
+    const std::vector<TrajectoryPoint> &points_wcs,   // 待转换的点
+    const std::vector<ReferencePoint> &match_points,  // 匹配点
     const std::vector<ReferencePoint>
-        &project_points,              //待转换点在参考线上的投影点
-    std::vector<SLPoint> &points_fcs) //转换点的SL
+        &project_points,  // 待转换点在参考线上的投影点
+    std::vector<SLPoint> &points_fcs)  // 转换点的SL
 {
-
-  //计算s的值，根据匹配点和投影点，匹配点的s值已经求得，存在于sl_reference_line
+  // 计算s的值，根据匹配点和投影点，匹配点的s值已经求得，存在于sl_reference_line
   auto reference_line_points = reference_line.reference_points();
   int size = points_wcs.size();
   points_fcs.resize(size);
   for (int i = 0; i < size; i++) {
     // 1.求s，可以写成一个子函数
-    //此处可以用eigen解决vector2d向量的问题，
-    //求match->project
+    // 此处可以用eigen解决vector2d向量的问题，
+    // 求match->project
     auto vector_porj2mactch =
         std::make_pair<double, double>(project_points[i].x - match_points[i].x,
                                        project_points[i].y - match_points[i].y);
-    //求match->next macth向量
+    // 求match->next macth向量
     std::pair<double, double> vector_next2match =
         std::make_pair<double, double>(0, 0);
     if (match_points[i].index < reference_line_points.size() - 1) {
@@ -170,7 +169,7 @@ void PathTimeGraph::Cartesian2Frenet(
           match_points[i].y -
               reference_line_points[match_points[i].index - 1].y);
     }
-    //判断投影点在匹配的前还是后
+    // 判断投影点在匹配的前还是后
     if (vector_porj2mactch.first * vector_next2match.first +
             vector_porj2mactch.second * vector_next2match.second >
         0) {
@@ -193,7 +192,7 @@ void PathTimeGraph::Cartesian2Frenet(
         -sin(project_points[i].heading), cos(project_points[i].heading));
     auto vector_or = std::make_pair<double, double>(1.0 * project_points[i].x,
                                                     1.0 * project_points[i].y);
-    //（点坐标-投影点坐标）*投影点法向量
+    // （点坐标-投影点坐标）*投影点法向量
     points_fcs[i].l = (vector_oh.first - vector_or.first) * vector_nr.first +
                       (vector_oh.second - vector_or.second) * vector_nr.second;
 
@@ -233,11 +232,11 @@ void PathTimeGraph::Cartesian2Frenet(
   }
 }
 
-//自然坐标系转笛卡尔坐标系
+// 自然坐标系转笛卡尔坐标系
 void PathTimeGraph::Frenet2Cartesian(
-    const ReferenceLine &reference_line,           //参考线
-    const std::vector<SLPoint> &sl_reference_line, //参考线的sl值
-    const std::vector<SLPoint> &points_fcs,        //待转换的点
+    const ReferenceLine &reference_line,            // 参考线
+    const std::vector<SLPoint> &sl_reference_line,  // 参考线的sl值
+    const std::vector<SLPoint> &points_fcs,         // 待转换的点
     std::vector<ReferencePoint> *points_wcs) {}
 
 /*
@@ -259,30 +258,30 @@ void PathTimeGraph::PathDynamicPlanning() {
   }
 
   // 2.动态规划主结构
-  for (int j = 1; j < cols; j++) //第j列
+  for (int j = 1; j < cols; j++)  // 第j列
   {
-    for (int i = 0; i < rows; i++) //第i行
+    for (int i = 0; i < rows; i++)  // 第i行
     {
-      //计算起点到ij点的cost
+      // 计算起点到ij点的cost
       sample_points_[i][j].cost2start = DBL_MAX;
       for (int k = 0; k < rows; k++) {
-        //计算前一列每一点到当前点的cost，结合前一列点的cost2start，获得起点到当前点的cost，通过比较获取最小值
+        // 计算前一列每一点到当前点的cost，结合前一列点的cost2start，获得起点到当前点的cost，通过比较获取最小值
         double cost =
             sample_points_[k][j - 1].cost2start +
             CalcPathCost(sample_points_[k][j - 1], sample_points_[i][j]);
         if (cost < sample_points_[i][j].cost2start) {
           sample_points_[i][j].cost2start = cost;
-          sample_points_[i][j].pre_mincost_row = k; //记录最优路径上一列的行号
+          sample_points_[i][j].pre_mincost_row = k;  // 记录最优路径上一列的行号
         }
       }
     }
   }
 
   // 3.回溯路径
-  std::vector<SLPoint> dp_path_points; // rows-1个+起点
+  std::vector<SLPoint> dp_path_points;  // rows-1个+起点
   dp_path_points.resize(cols + 1);
-  dp_path_points[0] = sl_plan_start_; //第一个点是起点
-  //找到最后一列
+  dp_path_points[0] = sl_plan_start_;  // 第一个点是起点
+  // 找到最后一列
   dp_path_points[cols] = sample_points_[0][cols - 1];
   for (int i = 1; i < rows; i++) {
     if (sample_points_[i][cols - 1].cost2start <
@@ -294,23 +293,23 @@ void PathTimeGraph::PathDynamicPlanning() {
     int pre_mincost_row = dp_path_points[j + 1].pre_mincost_row;
     dp_path_points[j] = sample_points_[pre_mincost_row][j - 1];
   }
-  dp_path_points_ = dp_path_points; //赋值私有变量
+  dp_path_points_ = dp_path_points;  // 赋值私有变量
 }
 
 double PathTimeGraph::CalcPathCost(SLPoint point_satrt, SLPoint point_end) {
-  //计算两点之间五次多项式连接的代价
-  // 1.计算五次多项式系数
+  // 计算两点之间五次多项式连接的代价
+  //  1.计算五次多项式系数
   std::vector<double> qc;
   CalcQuinticCoeffient(point_satrt, point_end, &qc);
-  //中间取10个点计算cost，加上终点11个
-  //插值
+  // 中间取10个点计算cost，加上终点11个
+  // 插值
   SLPoint quintic_path_point;
   double cost_smooth = 0;
   double cost_ref = 0;
   double cost_collision = 0;
 
-  for (int i = 0; i < 10; i++) { //不包含起点包含终点
-    //计算第i和点的s,l,dl,ddl,dddl
+  for (int i = 0; i < 10; i++) {  // 不包含起点包含终点
+    // 计算第i和点的s,l,dl,ddl,dddl
     quintic_path_point.s =
         point_satrt.s + (i + 1) * (point_end.s - point_satrt.s) / 10;
     quintic_path_point.l = qc[0] + qc[1] * quintic_path_point.s +
@@ -327,24 +326,24 @@ double PathTimeGraph::CalcPathCost(SLPoint point_satrt, SLPoint point_end) {
                                 20 * qc[5] * pow(quintic_path_point.s, 3);
     quintic_path_point.dddl_ds = 6 * qc[3] + 24 * qc[4] * quintic_path_point.s +
                                  60 * qc[5] * pow(quintic_path_point.s, 2);
-    //平滑代价
+    // 平滑代价
     cost_smooth = cost_smooth +
                   config_.dp_cost_dl * pow(quintic_path_point.dl_ds, 2) +
                   config_.dp_cost_ddl * pow(quintic_path_point.ddl_ds, 2) +
                   config_.dp_cost_dddl * pow(quintic_path_point.dddl_ds, 2);
-    //如果ddl或者切向角过大，则增加cost
+    // 如果ddl或者切向角过大，则增加cost
     ////此处导致代价都很大
     if (abs(quintic_path_point.ddl_ds) > 0.5 ||
         abs(atan(quintic_path_point.dl_ds)) > 0.4 * M_PI) {
       cost_smooth = cost_smooth + 10e7;
     }
-    //参考线代价
+    // 参考线代价
     cost_ref = config_.dp_cost_ref * pow(quintic_path_point.l, 2);
 
-    //碰撞代价,这里做了非常简化的质点模型，认为障碍物就是一个点
-    //求该点到障碍物的最小距离
+    // 碰撞代价,这里做了非常简化的质点模型，认为障碍物就是一个点
+    // 求该点到障碍物的最小距离
     double min_d = DBL_MAX;
-    for (const auto &obstacle : sl_static_obstacles_) //遍历静态障碍物
+    for (const auto &obstacle : sl_static_obstacles_)  // 遍历静态障碍物
     {
       double dlon = quintic_path_point.s - obstacle.s;
       double dlat = quintic_path_point.l - obstacle.l;
@@ -360,9 +359,9 @@ double PathTimeGraph::CalcPathCost(SLPoint point_satrt, SLPoint point_end) {
     else
       cost_collision = cost_collision + config_.dp_cost_collision * 10e5;
 
-    //此处忽略左右判断？？？
+    // 此处忽略左右判断？？？
   }
-  //三个代价不是一个数量级
+  // 三个代价不是一个数量级
   return cost_smooth + cost_ref + cost_collision;
 }
 
@@ -425,10 +424,10 @@ void PathTimeGraph::CreateSamplingPoint(
     }
   }
 
-} //对sample_points_进行操作
+}  // 对sample_points_进行操作
 
 void PathTimeGraph::DpPathInterpolation(int interpolation_num, double ds) {
-  std::vector<SLPoint> dp_path_points_dense; // ds1，60个。向前60m
+  std::vector<SLPoint> dp_path_points_dense;  // ds1，60个。向前60m
   // //调试增加
   // dp_path_points_[0].s = 0;
   // dp_path_points_[0].l = 0;
@@ -439,7 +438,7 @@ void PathTimeGraph::DpPathInterpolation(int interpolation_num, double ds) {
   int dense_size = dp_path_points_.back().s / ds + 1;
   for (int i = 0; i < size - 1; i++) {
     if (dp_path_points_dense.size() < dense_size) {
-      //对s进行采样,依次对每两点间隔ds进行采样
+      // 对s进行采样,依次对每两点间隔ds进行采样
       SLPoint quintic_path_point;
       std::vector<double> qc;
       CalcQuinticCoeffient(dp_path_points_[i], dp_path_points_[i + 1], &qc);
@@ -477,8 +476,8 @@ void PathTimeGraph::GenerateConvexSpace(double static_obs_length,
   // 0.初始化l_min,l_max为道路边界
   // 1.找到每个障碍物的s_head,s_end
   // 2.找到dp_path_s 中，与s_head s_end最近的s的编号。
-  //如果是向左绕行，则设置l_min
-  //如果向右绕行，则设置l_max
+  // 如果是向左绕行，则设置l_min
+  // 如果向右绕行，则设置l_max
   int size = dp_path_points_dense_.size();
   Eigen::VectorXd l_min = Eigen::VectorXd::Ones(size) * -8;
   Eigen::VectorXd l_max = Eigen::VectorXd::Ones(size) * 8;
@@ -493,11 +492,11 @@ void PathTimeGraph::GenerateConvexSpace(double static_obs_length,
                             dp_path_points_dense_[end_index].l) /
                            2;
 
-    if (path_center_l > obs.l) { //左侧绕行
+    if (path_center_l > obs.l) {  // 左侧绕行
       for (int i = start_index; i <= end_index; i++) {
         l_min(i) = std::max(l_min(i), obs.l + static_obs_width / 2);
       }
-    } else { //右侧绕行
+    } else {  // 右侧绕行
       for (int i = start_index; i <= end_index; i++) {
         l_max(i) = std::min(l_max(i), obs.l - static_obs_width / 2);
       }
@@ -510,14 +509,12 @@ void PathTimeGraph::GenerateConvexSpace(double static_obs_length,
 
 int PathTimeGraph::FindNearIndex(
     const std::vector<SLPoint> &dp_path_points_dense, double obs_s) {
-  if (dp_path_points_dense.front().s > obs_s)
-    return 0;
+  if (dp_path_points_dense.front().s > obs_s) return 0;
   if (dp_path_points_dense.back().s < obs_s)
     return dp_path_points_dense.size() - 1;
   double index = 0;
   for (index = 0; index < dp_path_points_dense.size(); index++) {
-    if (dp_path_points_dense[index].s > obs_s)
-      break;
+    if (dp_path_points_dense[index].s > obs_s) break;
   }
 
   if (dp_path_points_dense[index].s - obs_s >
@@ -549,11 +546,11 @@ bool PathTimeGraph::PathQuadraticProgramming() {
 
   int n = dp_path_points_dense_.size();
   double ds = dp_path_points_dense_[1].s - dp_path_points_dense_[0].s;
-  double d1 = 3; //汽车中心到后前边的距离
+  double d1 = 3;  // 汽车中心到后前边的距离
   double d2 = 3;
   double w = 1.67;
 
-  //输出初始化
+  // 输出初始化
   Eigen::VectorXd qp_path_l = Eigen::VectorXd::Zero(n);
   Eigen::VectorXd qp_path_dl = Eigen::VectorXd::Zero(n);
   Eigen::VectorXd qp_path_ddl = Eigen::VectorXd::Zero(n);
@@ -563,7 +560,7 @@ bool PathTimeGraph::PathQuadraticProgramming() {
   Eigen::SparseMatrix<double> H(3 * n, 3 * n);
   Eigen::SparseMatrix<double> H_L(3 * n, 3 * n);
   Eigen::SparseMatrix<double> H_DL(3 * n, 3 * n);
-  Eigen::SparseMatrix<double> H_DDL(3 * n, 3 * n); // n-1,3n
+  Eigen::SparseMatrix<double> H_DDL(3 * n, 3 * n);  // n-1,3n
   Eigen::SparseMatrix<double> H_DDDL(3 * n, 3 * n);
 
   Eigen::SparseMatrix<double> H_CENTRE(3 * n, 3 * n);
@@ -574,11 +571,11 @@ bool PathTimeGraph::PathQuadraticProgramming() {
   // grident矩阵 f
   Eigen::VectorXd f = Eigen::VectorXd::Zero(3 * n);
 
-  //不等式约束  A*x <= b，dl ddl变化量约束
+  // 不等式约束  A*x <= b，dl ddl变化量约束
   Eigen::SparseMatrix<double> A(8 * n, 3 * n);
   Eigen::VectorXd b = Eigen::VectorXd::Zero(8 * n);
 
-  //等式约束Aeq*x = beq,连续性约束
+  // 等式约束Aeq*x = beq,连续性约束
   Eigen::SparseMatrix<double> Aeq(2 * n - 2, 3 * n);
   Eigen::VectorXd beq = Eigen::VectorXd::Zero(2 * n - 2);
 
@@ -587,12 +584,12 @@ bool PathTimeGraph::PathQuadraticProgramming() {
   A_lu.setIdentity();
   Eigen::VectorXd lb = Eigen::VectorXd::Ones(3 * n) * -DBL_MAX;
   Eigen::VectorXd ub = Eigen::VectorXd::Ones(3 * n) * DBL_MAX;
-  //行优先只能进行列操作
+  // 行优先只能进行列操作
   Eigen::SparseMatrix<double> A_merge(8 * n + 2 * n - 2 + 3 * n, 3 * n);
   Eigen::VectorXd lb_merge(8 * n + 2 * n - 2 + 3 * n);
   Eigen::VectorXd ub_merge(8 * n + 2 * n - 2 + 3 * n);
   //---------------------------------------------H
-  //生成H_L,H_DL,H_DDL,H_CENTRE
+  // 生成H_L,H_DL,H_DDL,H_CENTRE
   // matlab矩阵索引从1开始，eigen矩阵索引从
   for (int i = 0; i < n; i++) {
     H_L.insert(3 * i, 3 * i) = 1;
@@ -600,7 +597,7 @@ bool PathTimeGraph::PathQuadraticProgramming() {
     H_DDL.insert(3 * i + 2, 3 * i + 2) = 1;
   }
   H_CENTRE = H_L;
-  //生成H_DDDL
+  // 生成H_DDDL
   Eigen::SparseMatrix<double> H_dddl_sub(1, 6);
   H_dddl_sub.insert(0, 2) = 1;
   H_dddl_sub.insert(0, 5) = -1;
@@ -608,10 +605,10 @@ bool PathTimeGraph::PathQuadraticProgramming() {
   for (int i = 0; i < n - 1; i++) {
     int row = i;
     int col = 3 * i;
-    //关于读操作，稀疏矩阵支持类似于密集矩阵相同的接口来访问块，列，行。
-    //但由于性能的原因，稀疏子矩阵的写操作非常受限。当前仅列（列）优先稀疏矩阵的连续列（或行）可写。此外，在编译时必须知道这些信息。
-    //  H_DDDL.block(row, col, 1, 6) = H_dddl_sub; //设置矩阵的块
-    // H_DDDL.middleRows(row, col) = H_dddl_sub;
+    // 关于读操作，稀疏矩阵支持类似于密集矩阵相同的接口来访问块，列，行。
+    // 但由于性能的原因，稀疏子矩阵的写操作非常受限。当前仅列（列）优先稀疏矩阵的连续列（或行）可写。此外，在编译时必须知道这些信息。
+    //   H_DDDL.block(row, col, 1, 6) = H_dddl_sub; //设置矩阵的块
+    //  H_DDDL.middleRows(row, col) = H_dddl_sub;
     H_DDDL.insert(row, col + 2) = 1;
     H_DDDL.insert(row, col + 5) = -1;
   }
@@ -633,12 +630,11 @@ bool PathTimeGraph::PathQuadraticProgramming() {
 
   //--------------------------------------生成f
   auto centre_line =
-      0.5 * (l_min_ + l_max_); //此时centre line 还是60个点,起点不优化
+      0.5 * (l_min_ + l_max_);  // 此时centre line 还是60个点,起点不优化
   for (int i = 0; i < n; i++) {
     f(3 * i) = -2 * centre_line(i);
-    //避免centreline权重过大影响轨迹平顺性
-    if (abs(f(3 * i)) > 0.3)
-      f(3 * i) = config_.qp_cost_centre * centre_line(i);
+    // 避免centreline权重过大影响轨迹平顺性
+    if (abs(f(3 * i)) > 0.3) f(3 * i) = config_.qp_cost_centre * centre_line(i);
   }
   //% 期望的终点状态
   double end_l_desire = 0;
@@ -649,7 +645,7 @@ bool PathTimeGraph::PathQuadraticProgramming() {
   f(3 * n - 1) = f(3 * n - 1) - 2 * end_ddl_desire * config_.qp_cost_end_ddl;
 
   // Ax<=b
-  //生成A 凸空间约束
+  // 生成A 凸空间约束
   Eigen::MatrixXd A_sub(8, 3);
 
   A_sub << 1, d1, 0, 1, d1, 0, 1, -d2, 0, 1, -d2, 0, -1, -d1, 0, -1, -d1, 0, -1,
@@ -679,12 +675,12 @@ bool PathTimeGraph::PathQuadraticProgramming() {
     A_merge.insert(row + 7, col + 1) = d2;
   }
 
-  //生成b
+  // 生成b
   int front_index = ceil(d1 / ds);
   int back_index = ceil(d2 / ds);
   for (int i = 0; i < n; i++) {
-    int index1 = std::min(i + front_index, n - 1); //车头索引
-    int index2 = std::max(i - back_index, 0);      //车位索引
+    int index1 = std::min(i + front_index, n - 1);  // 车头索引
+    int index2 = std::max(i - back_index, 0);       // 车位索引
     Eigen::VectorXd b_sub(8);
     b_sub << l_max_(index1) - w / 2, l_max_(index1) + w / 2,
         l_max_(index2) - w / 2, l_max_(index2) + w / 2, -l_min_(index1) + w / 2,
@@ -694,7 +690,7 @@ bool PathTimeGraph::PathQuadraticProgramming() {
   }
 
   // Aeqx<=beq
-  //生成Aeq,连续性约束
+  // 生成Aeq,连续性约束
   Eigen::MatrixXd Aeq_sub(2, 6);
   Aeq_sub << 1, ds, pow(ds, 2) / 3, -1, 0, pow(ds, 2) / 6, 0, 1, ds / 2, 0, -1,
       ds / 2;
@@ -737,7 +733,7 @@ bool PathTimeGraph::PathQuadraticProgramming() {
     ub(3 * i + 2) = 0.1;
   }
 
-  //汇总约束
+  // 汇总约束
   /*
                  -inf< A*x   <= b
   %              -inf< Aeq*x = beq
@@ -775,18 +771,17 @@ bool PathTimeGraph::PathQuadraticProgramming() {
   OsqpEigen::Solver solver;
 
   solver.settings()->setWarmStart(true);
-  solver.data()->setNumberOfVariables(3 * n); // A矩阵列数
-  solver.data()->setNumberOfConstraints(8 * n + 2 * n - 2 + 3 * n); // A矩阵行数
+  solver.data()->setNumberOfVariables(3 * n);  // A矩阵列数
+  solver.data()->setNumberOfConstraints(8 * n + 2 * n - 2 +
+                                        3 * n);  // A矩阵行数
   solver.data()->setHessianMatrix(H);
   solver.data()->setGradient(f);
   solver.data()->setLinearConstraintsMatrix(A_merge);
   solver.data()->setLowerBound(lb_merge);
   solver.data()->setUpperBound(ub_merge);
 
-  if (!solver.initSolver())
-    return 0;
-  if (!solver.solve())
-    return 0;
+  if (!solver.initSolver()) return 0;
+  if (!solver.solve()) return 0;
   Eigen::VectorXd qp_solution(3 * n);
   qp_solution = solver.getSolution();
   qp_path_points_ = dp_path_points_dense_;
@@ -857,19 +852,18 @@ void PathTimeGraph::QpPathInterpolation(int num, double ds) {
     qp_path_points_dense[i].s = s;
     while (s >= qp_path_points_[index].s) {
       index++;
-      if (index == n_init)
-        break;
+      if (index == n_init) break;
     }
     //% while 循环退出的条件是x <
     // qp_path_s(index)，所以x对应的前一个s的编号是index - 1
-    //后一个编号是index
+    // 后一个编号是index
     int pre = index - 1;
     int cur = index;
     double delta_s = s - qp_path_points_[pre].s;
     int jerk = (qp_path_points_[cur].ddl_ds - qp_path_points_[pre].ddl_ds) /
                (qp_path_points_[cur].s - qp_path_points_[pre].s);
 
-    //分段加加速度优化，计算出现问题，以起点计算，与终点不重合
+    // 分段加加速度优化，计算出现问题，以起点计算，与终点不重合
     qp_path_points_dense[i].l =
         qp_path_points_[pre].l +
         (qp_path_points_[cur].l - qp_path_points_[pre].l) /
@@ -883,17 +877,17 @@ void PathTimeGraph::QpPathInterpolation(int num, double ds) {
         (qp_path_points_[cur].ddl_ds - qp_path_points_[pre].ddl_ds) * delta_s /
             (qp_path_points_[cur].s - qp_path_points_[pre].s);
     // % 因为此时x的后一个编号是index 必有x < qp_path_s(index),
-    //在下一个循环中x
+    // 在下一个循环中x
     // = x + ds
-    //也未必大于 % qp_path_s(index)，这样就进入不了while循环，所以index
-    //要回退一位
+    // 也未必大于 % qp_path_s(index)，这样就进入不了while循环，所以index
+    // 要回退一位
     index = index - 1;
   }
 
   qp_path_points_dense_ = qp_path_points_dense;
 }
 
-void PathTimeGraph::GeneratePlaningPath() // frenet
+void PathTimeGraph::GeneratePlaningPath()  // frenet
 {
   int size = qp_path_points_dense_.size();
   std::vector<ReferencePoint> planning_path_points;
@@ -958,24 +952,24 @@ void PathTimeGraph::CalcProjPoint(
 const SLPoint PathTimeGraph::sl_plan_start() const { return sl_plan_start_; }
 
 const ReferenceLine PathTimeGraph::planning_path() const {
-
   return planning_path_;
 }
 
 const std::vector<SLPoint> PathTimeGraph::dp_path_points() const {
   return dp_path_points_;
-}; //动态规划路径点
+};  // 动态规划路径点
 
 const std::vector<SLPoint> PathTimeGraph::dp_path_points_dense() const {
   return dp_path_points_dense_;
 
-}; //动态规划加密路径点
+};  // 动态规划加密路径点
 
 const std::vector<SLPoint> PathTimeGraph::qp_path_points() const {
   return qp_path_points_;
-}; //二次规划路径点
+};  // 二次规划路径点
 
 const std::vector<SLPoint> PathTimeGraph::qp_path_points_dense() const {
   return qp_path_points_dense_;
 
-}; //二次规划加密路径点
+};  // 二次规划加密路径点
+}  // namespace ADPlanning

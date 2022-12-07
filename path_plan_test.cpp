@@ -1,11 +1,13 @@
-#include "EMPlanner/EMPlanner.h"
-#include "localization/localization_estimate.h"
-#include "perception/perception_obstacle.h"
-#include "plot/plot.h"
-#include "reference_line/reference_line_provider.h"
-#include "routing/routing_path.h"
-#include <memory>
 #include <unistd.h>
+
+#include <memory>
+
+#include "EMPlanner/EMPlanner.hpp"
+#include "localization/localization_estimate.hpp"
+#include "perception/perception_obstacle.hpp"
+#include "plot/plot.hpp"
+#include "reference_line/reference_line_provider.hpp"
+#include "routing/routing_path.hpp"
 
 using namespace std;
 namespace plt = matplotlibcpp;
@@ -16,25 +18,25 @@ int main(int argc, char const *argv[]) {
 
   plt::plot(x, y);
 
-  //构造路由模块指针
+  // 构造路由模块指针
   std::unique_ptr<RoutingPath> routing_path =
-      std::make_unique<RoutingPath>(); //注意是make_unique
+      std::make_unique<RoutingPath>();  // 注意是make_unique
 
-  //定位信息指针
+  // 定位信息指针
   std::unique_ptr<LocalizationEstimate> localization =
       std::make_unique<LocalizationEstimate>();
-  //障碍物信息
+  // 障碍物信息
   std::unique_ptr<PerceptionObstacle> perception =
       std::make_unique<PerceptionObstacle>();
-  //构造全局路径
+  // 构造全局路径
 
   routing_path->CreatePath();
-  //创建一个静态障碍物
+  // 创建一个静态障碍物
   perception->AddStaticObstacle(0, 30, -0.5, 0,
-                                0); //此代码执行错误，待查找原因
+                                0);  // 此代码执行错误，待查找原因
 
   perception->AddDynamicObstacle(1, 40, -10, M_PI / 2,
-                                 2); //此代码执行错误，待查找原因
+                                 2);  // 此代码执行错误，待查找原因
 
   auto static_obstacle_info = perception->static_obstacles();
   auto dynamic_obstacle_info = perception->dynamic_obstacles();
@@ -43,12 +45,12 @@ int main(int argc, char const *argv[]) {
 
   LocalizationInfo localization_info;
 
-  ReferenceLine reference_line; //当前参考线
+  ReferenceLine reference_line;  // 当前参考线
   std::vector<ReferencePoint> rp;
   rp.clear();
   reference_line.set_reference_points(rp);
 
-  ReferenceLine pre_reference_line; //上一时刻参考线
+  ReferenceLine pre_reference_line;  // 上一时刻参考线
 
   Trajectory trajectory;
   Trajectory pre_trajectory;
@@ -61,7 +63,7 @@ int main(int argc, char const *argv[]) {
   std::unique_ptr<ReferenceLineProvider> reference_line_provider =
       std::make_unique<ReferenceLineProvider>();
   pre_reference_line = reference_line;
-  //传参应该是数据类型，而不是类的对象
+  // 传参应该是数据类型，而不是类的对象
   reference_line_provider->Provide(routing_path_points, localization_info,
                                    pre_reference_line, reference_line);
   auto raw_reference_line = reference_line_provider->raw_reference_line();
@@ -84,11 +86,11 @@ int main(int argc, char const *argv[]) {
 
   std::unique_ptr<Plot> plot = std::make_unique<Plot>();
 
-  plt::figure(1); // xy
+  plt::figure(1);  // xy
   plot->PlotRoutingPath(routing_path_points, "k");
   plot->PlotReferenceLine(reference_line, "y");
 
-  plt::figure(2); // sl
+  plt::figure(2);  // sl
   plot->PlotSLPath(em_planner->sl_graph_->dp_path_points(), "r");
   plot->PlotSLPath(em_planner->sl_graph_->dp_path_points_dense(), "g");
 
@@ -103,7 +105,7 @@ int main(int argc, char const *argv[]) {
   plot->PlotPlanningPath(
       em_planner->sl_graph_->planning_path().reference_points(), "b");
 
-  plt::figure(3); // st
+  plt::figure(3);  // st
   plot->PlotSTObs(em_planner->st_graph_->st_obstacles(), "k");
   plot->PlotSTPath(em_planner->st_graph_->dp_speed_points(), "r");
   plt::figure(3);

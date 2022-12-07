@@ -3,19 +3,20 @@
 */
 
 #pragma once
-#include "common/pnc_point.h"
+
 #include <vector>
 
+#include "common/pnc_point.hpp"
+namespace ADPlanning {
 class ReferenceLine {
-
   // XYtoSL
 
   // SYtoXY
 
-  //变量
+  // 变量
 
   // x,y,
-public:
+ public:
   ReferenceLine() = default;
   ~ReferenceLine() = default;
   void set_reference_points(std::vector<ReferencePoint> reference_points);
@@ -28,9 +29,9 @@ public:
   const ReferencePoint host_project_point() const;
   const ReferencePoint host_match_point() const;
 
-private:
-  std::vector<ReferencePoint> reference_points_; //参考点类
-  int match_point_index_;                        //自车匹配点索引
+ private:
+  std::vector<ReferencePoint> reference_points_;  // 参考点类
+  int match_point_index_;                         // 自车匹配点索引
   ReferencePoint host_project_point_;
   ReferencePoint host_match_point_;
 };
@@ -54,3 +55,4 @@ protected继承 protected protected 不可用
 private继承 private private 不可用
 protected继承和private继承能降低访问权限。
 */
+}  // namespace ADPlanning

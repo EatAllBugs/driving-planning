@@ -1,14 +1,14 @@
-#include "EMPlanner/trajectory.h"
-#include "plot/matplot/matplotlibcpp.h"
-#include "reference_line/reference_line.h"
-#include "routing/routing_path.h"
-
 #include <map>
 #include <vector>
-namespace plt = matplotlibcpp;
 
+#include "EMPlanner/trajectory.hpp"
+#include "plot/matplot/matplotlibcpp.h"
+#include "reference_line/reference_line.hpp"
+#include "routing/routing_path.hpp"
+namespace plt = matplotlibcpp;
+namespace ADPlanning {
 class Plot {
-public:
+ public:
   Plot();
   ~Plot() = default;
   void PlotRoutingPath(std::vector<MapPoint> routing_path_points,
@@ -31,5 +31,6 @@ public:
                   const std::string &color);
 
   void PlotSpeedTime(std::vector<STPoint> dp_speed_points,
-                  const std::string &color);
+                     const std::string &color);
 };
+}  // namespace ADPlanning

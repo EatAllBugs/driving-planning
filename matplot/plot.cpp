@@ -1,7 +1,8 @@
-#include "matplot/plot.h"
+#include "matplot/plot.hpp"
 
 namespace plt = matplotlibcpp;
 
+namespace ADPlanning {
 void Plot::PlotRoutingPath(std::vector<MapPoint> routing_path_points,
                            const std::string &color) {
   std::vector<double> x, y;
@@ -21,7 +22,6 @@ void Plot::PlotReferenceLine(ReferenceLine reference_line,
   plt::plot(x, y, color);
 }
 void Plot::PlotTrajetory(Trajectory trajectory, const std::string &color) {
-
   std::vector<double> x, y;
   for (const auto point : trajectory.trajectory_points()) {
     x.push_back(point.x);
@@ -29,3 +29,4 @@ void Plot::PlotTrajetory(Trajectory trajectory, const std::string &color) {
   }
   plt::plot(x, y, color);
 }
+}  // namespace ADPlanning

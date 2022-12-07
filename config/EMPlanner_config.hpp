@@ -1,18 +1,19 @@
 #pragma once
 
+namespace ADPlanning {
 class EMPlannerConfig {
-private:
+ private:
   /* data */
-public:
-  EMPlannerConfig(/* args */) = default;
+ public:
+  EMPlannerConfig() = default;
   ~EMPlannerConfig() = default;
   double planning_time = 8;
 
-  double dp_cost_collision = 1.8; // default=10
-  double dp_cost_dl = 120;        //
+  double dp_cost_collision = 1.8;  // default=10
+  double dp_cost_dl = 120;
   double dp_cost_ddl = 1;
   double dp_cost_dddl = 1;
-  double dp_cost_ref = 20; // default=100
+  double dp_cost_ref = 20;  // default=100
 
   double dp_row = 1;
   double dp_col = 1;
@@ -37,3 +38,4 @@ public:
 
   double max_lateral_accel = 1;
 };
+}  // namespace ADPlanning

@@ -1,19 +1,19 @@
 #pragma once
 
-#include "common/pnc_point.h"
-
 #include <vector>
 
+#include "common/pnc_point.hpp"
+namespace ADPlanning {
 class RoutingPath {
-public:
+ public:
   const std::vector<MapPoint> routing_path_points() const;
 
   void set_routing_path(const std::vector<MapPoint> routing_path_point);
   void CreatePath();
-  //从csv文件中初始化routing_path
+  // 从csv文件中初始化routing_path
   std::vector<MapPoint> GetRoutingPathFromCSV();
 
-private:
+ private:
   std::vector<MapPoint> routing_path_points_;
 };
 
@@ -73,3 +73,4 @@ return m_num;
 }
 const成员函数的声明看起来怪怪的：const关键字只能放在函数声明的尾部，大概是因为其它地方都已经被占用了
 */
+}  // namespace ADPlanning

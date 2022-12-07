@@ -1,6 +1,7 @@
 #pragma once
-#include "common/pnc_point.h"
 #include <vector>
+
+#include "common/pnc_point.hpp"
 
 /*
 　　类成员变量的初始化
@@ -10,20 +11,17 @@
     初始化的顺序是与类中本来类的变量位置的顺序有关，与T():name(),name2():{}的形式中变量名的顺序无关。
     3、static类型的成员变量需要在类外进行初始化
 */
-
-
-
+namespace ADPlanning {
 class Trajectory {
-
-public:
+ public:
   Trajectory(/* args */);
   ~Trajectory();
   const std::vector<TrajectoryPoint> trajectory_points() const;
-  void
-  set_trajectory_points(const std::vector<TrajectoryPoint> &trajectory_points);
+  void set_trajectory_points(
+      const std::vector<TrajectoryPoint> &trajectory_points);
 
-private:
+ private:
   /* data */
   std::vector<TrajectoryPoint> trajectory_points_;
 };
-
+}  // namespace ADPlanning

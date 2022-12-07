@@ -1,16 +1,17 @@
-#include "reference_line/reference_line_smoother.h"
+#include "reference_line/reference_line_smoother.hpp"
+
 #include "OsqpEigen/OsqpEigen.h"
 #include "eigen3/Eigen/Eigen"
-
-//使用：将类的初始化参数 传递给 成员变量
+namespace ADPlanning {
+// 使用：将类的初始化参数 传递给 成员变量
 ReferenceLineSmoother::ReferenceLineSmoother(
     const ReferenceLineSmootherConfig &config)
     : config_(config) {}
 
 void ReferenceLineSmoother::Smooth(const ReferenceLine &raw_reference_line,
                                    ReferenceLine &smoothed_reference_line) {
-
-  smoothed_reference_line = raw_reference_line;//将平滑参考线初始化为初始参号线
+  smoothed_reference_line =
+      raw_reference_line;  // 将平滑参考线初始化为初始参号线
   std::vector<std::pair<double, double>> raw_point2d;
   std::vector<std::pair<double, double>> smoothed_point2d;
   for (const auto point : raw_reference_line.reference_points()) {
@@ -33,15 +34,15 @@ bool ReferenceLineSmoother::DiscretePointsSmooth(
     std::vector<std::pair<double, double>> *smoothed_point2d) {
   int n = raw_point2d.size();
 
-  //初始化A1,A2,A3，f,lb,ub矩阵
-  //平滑代价系数矩阵，x'A1'A1x, (n-2)
+  // 初始化A1,A2,A3，f,lb,ub矩阵
+  // 平滑代价系数矩阵，x'A1'A1x, (n-2)
   Eigen::SparseMatrix<double> A1(2 * n, 2 * n);
-  //路径长度代价矩阵 x'A2'A2x,(n-1)
+  // 路径长度代价矩阵 x'A2'A2x,(n-1)
   Eigen::SparseMatrix<double> A2(2 * n, 2 * n);
-  //参考线偏离代价矩阵 x'A3'A3x,单位阵
+  // 参考线偏离代价矩阵 x'A3'A3x,单位阵
   Eigen::SparseMatrix<double> A3(2 * n, 2 * n);
 
-  Eigen::SparseMatrix<double> H(2 * n, 2 * n); //必须是稀疏矩阵
+  Eigen::SparseMatrix<double> H(2 * n, 2 * n);  // 必须是稀疏矩阵
   Eigen::VectorXd f = Eigen::VectorXd::Zero(2 * n);
   Eigen::SparseMatrix<double> A(2 * n, 2 * n);
   Eigen::VectorXd lb = Eigen::VectorXd::Zero(2 * n);
@@ -50,8 +51,8 @@ bool ReferenceLineSmoother::DiscretePointsSmooth(
 
   A.setIdentity();
 
-  //赋值f,lb,ub;
-  // MatrixXd下标从(0,0)开始,(1,2)表示第1行第2列
+  // 赋值f,lb,ub;
+  //  MatrixXd下标从(0,0)开始,(1,2)表示第1行第2列
   for (int i = 0; i < n; i++) {
     f(2 * i) = raw_point2d[i].first;
     f(2 * i + 1) = raw_point2d[i].second;
@@ -63,7 +64,7 @@ bool ReferenceLineSmoother::DiscretePointsSmooth(
     ub(2 * i + 1) = f(2 * i + 1) + config_.y_upper_bound;
   }
 
-  //赋值A1
+  // 赋值A1
   for (int j = 0; j < n - 2; j++) {
     A1.insert(2 * j, 2 * j) = 1;
     A1.insert(2 * j, 2 * j + 2) = -2;
@@ -72,7 +73,7 @@ bool ReferenceLineSmoother::DiscretePointsSmooth(
     A1.insert(2 * j + 1, 2 * j + 3) = -2;
     A1.insert(2 * j + 1, 2 * j + 5) = 1;
   }
-  //赋值A2
+  // 赋值A2
   for (int k = 0; k < n - 1; k++) {
     A2.insert(2 * k, 2 * k) = 1;
     A2.insert(2 * k, 2 * k + 2) = -1;
@@ -101,10 +102,8 @@ bool ReferenceLineSmoother::DiscretePointsSmooth(
   solver.data()->setLowerBound(lb);
   solver.data()->setUpperBound(ub);
 
-  if (!solver.initSolver())
-    return 0;
-  if (!solver.solve())
-    return 0;
+  if (!solver.initSolver()) return 0;
+  if (!solver.solve()) return 0;
   qp_solution = solver.getSolution();
 
   (*smoothed_point2d).resize(n);
@@ -139,3 +138,4 @@ bool ReferenceLineSmoother::DiscretePointsSmooth(
 
 f'=w_cost_ref*h'
 */
+}  // namespace ADPlanning

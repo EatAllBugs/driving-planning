@@ -1,8 +1,8 @@
-
+namespace ADPlanning {
 class ReferenceLineSmootherConfig {
-public:
+ public:
   double weight_smooth =
-      70; // weight_fem_pos_deviation; (x1+x3-2x2)^2+(y1+y3-2y2)^2
+      70;  // weight_fem_pos_deviation; (x1+x3-2x2)^2+(y1+y3-2y2)^2
   double weight_path_length = 10;
   double weight_ref_deviation = 20;
 
@@ -25,3 +25,4 @@ double longitudinal_boundary_bound = 1.0;
 double max_lateral_boundary_bound = 0.5;
 double min_lateral_boundary_bound = 4;
 */
+}  // namespace ADPlanning

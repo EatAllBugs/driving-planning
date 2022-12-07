@@ -1,5 +1,5 @@
-#include "reference_line.h"
-
+#include "reference_line.hpp"
+namespace ADPlanning {
 void ReferenceLine::set_reference_points(
     std::vector<ReferencePoint> reference_points) {
   // vector是一个构造对象，不能直接使用=符号进行复制，必须迭代每个元素来复制。或者重载=操作符。
@@ -20,7 +20,6 @@ void ReferenceLine::set_host_project_point(ReferencePoint host_project_point) {
   host_project_point_ = host_project_point;
 }
 void ReferenceLine::set_host_match_point(ReferencePoint host_match_point) {
-
   host_match_point_ = host_match_point;
 }
 
@@ -34,3 +33,4 @@ const ReferencePoint ReferenceLine::host_project_point() const {
 const ReferencePoint ReferenceLine::host_match_point() const {
   return host_match_point_;
 }
+}  // namespace ADPlanning

@@ -4,29 +4,30 @@
 */
 #pragma once
 
-#include "config/EMPlanner_config.h"
-#include "localization/localization_estimate.h"
-#include "perception/perception_obstacle.h"
-#include "reference_line/reference_line.h"
-#include "trajectory.h"
 #include <memory>
 
-#include "EMPlanner/path_time_graph.h"
-#include "EMPlanner/speed_time_graph.h"
+#include "EMPlanner/path_time_graph.hpp"
+#include "EMPlanner/speed_time_graph.hpp"
+#include "config/EMPlanner_config.hpp"
+#include "localization/localization_estimate.hpp"
+#include "perception/perception_obstacle.hpp"
+#include "reference_line/reference_line.hpp"
+#include "trajectory.hpp"
 
+namespace ADPlanning {
 class EMPlanner {
-public:
+ public:
   EMPlanner(const EMPlannerConfig &conf);
   ~EMPlanner() = default;
 
-  void Plan(const uint64_t current_time,                //当前时间
-            const TrajectoryPoint &planning_init_point, //规划起点
-            const ReferenceLine &reference_line,        //参考线
-            const LocalizationInfo &localization,       //定位信息
-            const std::vector<ObstacleInfo> &obstacle,  //障碍物信息
+  void Plan(const uint64_t current_time,                 // 当前时间
+            const TrajectoryPoint &planning_init_point,  // 规划起点
+            const ReferenceLine &reference_line,         // 参考线
+            const LocalizationInfo &localization,        // 定位信息
+            const std::vector<ObstacleInfo> &obstacle,   // 障碍物信息
             const std::vector<ObstacleInfo> &dynamic_obstacles,
-            Trajectory *trajectory,                          //输出轨迹
-            std::vector<ObstacleInfo> xy_virtual_obstacles); //虚拟障碍物
+            Trajectory *trajectory,                           // 输出轨迹
+            std::vector<ObstacleInfo> xy_virtual_obstacles);  // 虚拟障碍物
 
   // 1.计算规划起点
   void CalPlaningStartPoint(const Trajectory &pre_traj,
@@ -46,7 +47,7 @@ public:
 
   // 5.二次规划
 
-  //直角坐标系转化为直角坐标系。
+  // 直角坐标系转化为直角坐标系。
   /*
    *1.根据自车位置和参考线建立sl的s轴
    *2.xy->找到该点在参考线的投影点，即求出了s
@@ -60,7 +61,7 @@ public:
   std::unique_ptr<PathTimeGraph> sl_graph_;
   std::unique_ptr<SpeedTimeGraph> st_graph_;
 
-private:
+ private:
   EMPlannerConfig config_;
 
   Trajectory pre_trajectory_;
@@ -71,3 +72,5 @@ private:
   // 3.障碍物的sl
   // 4.采样点的sl
 };
+
+}  // namespace ADPlanning

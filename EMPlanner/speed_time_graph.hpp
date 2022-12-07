@@ -1,29 +1,31 @@
 #pragma once
 
-//此类用于速度规划功能模块的实现
+// 此类用于速度规划功能模块的实现
 #pragma once
 
-#include "OsqpEigen/OsqpEigen.h"
-#include "config/EMPlanner_config.h"
-#include "eigen3/Eigen/Eigen"
-#include "localization/localization_estimate.h"
-#include "path_time_graph.h"
-#include "perception/perception_obstacle.h"
-#include "reference_line/reference_line_provider.h"
-#include <algorithm>
 #include <float.h>
+
+#include <algorithm>
 #include <vector>
 
-#include "trajectory.h"
+#include "OsqpEigen/OsqpEigen.h"
+#include "config/EMPlanner_config.hpp"
+#include "eigen3/Eigen/Eigen"
+#include "localization/localization_estimate.hpp"
+#include "path_time_graph.hpp"
+#include "perception/perception_obstacle.hpp"
+#include "reference_line/reference_line_provider.hpp"
+#include "trajectory.hpp"
 
+namespace ADPlanning {
 class SpeedTimeGraph {
-public:
+ public:
   SpeedTimeGraph(ReferenceLine planning_path,
-                 EMPlannerConfig emplaner_conf); //传入规划好的路径
+                 EMPlannerConfig emplaner_conf);  // 传入规划好的路径
   ~SpeedTimeGraph() = default;
 
   const Trajectory trajectory() const;
-  //虚拟障碍物的xy坐标
+  // 虚拟障碍物的xy坐标
   const std::vector<ObstacleInfo> xy_virtual_obstacles() const;
   std::vector<STLine> st_obstacles();
   const std::vector<STPoint> dp_speed_points() const;
@@ -33,7 +35,7 @@ public:
   // 1.基于规划的轨迹，初始化坐标轴
   void InitSAxis(const ReferenceLine planning_path);
 
-  //计算速度规划的
+  // 计算速度规划的
   void SetStartState(const SLPoint &sl_plan_start);
   // 2.计算障碍物的ST位置
   void SetDynamicObstaclesSL(const std::vector<ObstacleInfo> dynamic_obstacles);
@@ -57,18 +59,18 @@ public:
   // 7.path和speed的合并
   void PathAndSpeedMerge();
 
-private:
+ private:
   EMPlannerConfig emplaner_conf_;
   ReferenceLine planning_path_;
 
-  std::vector<ReferencePoint> planning_path_points_; //规划的参考线
-  std::vector<SLPoint> sl_planning_path_;            //转换的sl坐标
+  std::vector<ReferencePoint> planning_path_points_;  // 规划的参考线
+  std::vector<SLPoint> sl_planning_path_;             // 转换的sl坐标
 
-  std::vector<SLPoint> sl_dynamic_obstacles_; //障碍物信息应该有ID
-  SLPoint plan_start_;                        //规划起点
-  STPoint st_plan_start_;                     //规划起点
-  std::vector<SLPoint> sl_virtual_obstacles_; //虚拟障碍物的sl坐标
-  std::vector<ReferencePoint> xy_virtual_obstacles_; //虚拟障碍物的xy坐标
+  std::vector<SLPoint> sl_dynamic_obstacles_;  // 障碍物信息应该有ID
+  SLPoint plan_start_;                         // 规划起点
+  STPoint st_plan_start_;                      // 规划起点
+  std::vector<SLPoint> sl_virtual_obstacles_;  // 虚拟障碍物的sl坐标
+  std::vector<ReferencePoint> xy_virtual_obstacles_;  // 虚拟障碍物的xy坐标
 
   std::vector<STLine> st_obstacles_;
   std::vector<std::vector<STPoint>> sample_points_;
@@ -76,7 +78,7 @@ private:
   std::vector<STPoint> dp_speed_points_;
   std::vector<STPoint> dp_speed_points_dense_;
 
-  //凸空间
+  // 凸空间
   Eigen::VectorXd convex_s_lb_;
   Eigen::VectorXd convex_s_ub_;
   Eigen::VectorXd convex_ds_dt_lb_;
@@ -88,3 +90,4 @@ private:
   std::vector<TrajectoryPoint> trajectory_points_;
   Trajectory trajectory_;
 };
+}  // namespace ADPlanning

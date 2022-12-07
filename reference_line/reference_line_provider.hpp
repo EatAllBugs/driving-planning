@@ -1,18 +1,17 @@
 #pragma once
 
 /*此类的功能主要为EMPlanner提供参考线*/
-#include "reference_line/reference_line_smoother.h"
-//#include "routing/routing_path.h"
-#include <float.h>
-#include <math.h>
+#include <cmath>
 #include <memory>
 
+#include "reference_line/reference_line_smoother.hpp"
+namespace ADPlanning {
 class ReferenceLineProvider {
-public:
+ public:
   ReferenceLineProvider();
   ~ReferenceLineProvider() = default;
 
-  //类的主功能函数，由全局路径，定位信息，上一时刻的参考线信息，生成新的参考线
+  // 类的主功能函数，由全局路径，定位信息，上一时刻的参考线信息，生成新的参考线
   void Provide(const std::vector<MapPoint> &routing_path_points,
                const LocalizationInfo &localzation_info,
                const ReferenceLine &pre_reference_line,
@@ -27,7 +26,7 @@ public:
       std::vector<ReferencePoint> &match_points,
       std::vector<ReferencePoint> &project_points);
   // 2.根据匹配点，截取参考线
-private:
+ private:
   // 3.首次截取调用参考线平滑器，进行参考线平滑
   void GetReferenceLine(const ReferenceLine &frenet_path,
                         const int host_match_point_index,
@@ -39,11 +38,12 @@ private:
   void RoutingPathToFrenetPath(const std::vector<MapPoint> &routing_path_points,
                                ReferenceLine *frenet_path);
 
-  ReferenceLine frenet_path_; //将传入的全局路由转换自然的参考线
-  std::vector<MapPoint> pre_points_; //用于存储上一时刻，传入该模块的待处理点
+  ReferenceLine frenet_path_;  // 将传入的全局路由转换自然的参考线
+  std::vector<MapPoint> pre_points_;  // 用于存储上一时刻，传入该模块的待处理点
   bool is_first_run_ = false;
-  ReferenceLine raw_reference_line_;      //传入的原始参考线
-  ReferenceLine smoothed_reference_line_; //平滑后的参考线
+  ReferenceLine raw_reference_line_;       // 传入的原始参考线
+  ReferenceLine smoothed_reference_line_;  // 平滑后的参考线
   ReferencePoint host_project_point_;
   ReferencePoint host_match_point_;
 };
+}  // namespace ADPlanning

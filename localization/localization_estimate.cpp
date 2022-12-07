@@ -1,5 +1,6 @@
-#include "localization_estimate.h"
+#include "localization_estimate.hpp"
 
+namespace ADPlanning {
 LocalizationEstimate::LocalizationEstimate(/* args */) {
   localization_info_.t = 0;
 
@@ -18,13 +19,11 @@ LocalizationEstimate::LocalizationEstimate(/* args */) {
 }
 
 const LocalizationInfo LocalizationEstimate::localization_info() const {
-
   return localization_info_;
 }
-//根据当前时间和当前规划的轨迹，更新定位信息，假设控制完全跟踪规划
+// 根据当前时间和当前规划的轨迹，更新定位信息，假设控制完全跟踪规划
 void LocalizationEstimate::UpdateLocalizationInfo(u_int64_t time,
                                                   Trajectory trajectory) {
-
   if (time == 0) {
     localization_info_.x = 0;
     localization_info_.y = 0;
@@ -71,3 +70,4 @@ void LocalizationEstimate::UpdateLocalizationInfo(u_int64_t time,
     localization_info_.kappa = trajectory_points[i].kappa;
   }
 }
+}  // namespace ADPlanning

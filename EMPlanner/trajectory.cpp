@@ -1,7 +1,6 @@
-#include "trajectory.h"
-
+#include "trajectory.hpp"
+namespace ADPlanning {
 const std::vector<TrajectoryPoint> Trajectory::trajectory_points() const {
-
   return trajectory_points_;
 }
 
@@ -13,3 +12,4 @@ void Trajectory::set_trajectory_points(
 Trajectory::Trajectory(/* args */) {}
 
 Trajectory::~Trajectory() {}
+}  // namespace ADPlanning
