@@ -15,10 +15,8 @@
 
 namespace ADPlanning {
 class PathTimeGraph {
- private:
-  /* data */
  public:
-  // 1.初始化以参考线和车辆位置信息构建，sl坐标系。对应index2s
+  // 初始化以参考线和车辆位置信息构建，sl坐标系
   PathTimeGraph(const ReferenceLine &reference_line,
                 const EMPlannerConfig &emplaner_conf);
   ~PathTimeGraph() = default;
@@ -27,7 +25,8 @@ class PathTimeGraph {
   //  1.计算投影点
   //  2.XY2XL
   // 自有信息：reference_line_,
-  //  host_project_point_。//此函数其他地方也可以使用，因此在其中改变其私有变量☆☆☆☆☆☆☆
+  // host_project_point_。
+  // 此函数其他地方也可以使用，因此在其中改变其私有变量
   static void Cartesian2Frenet(
       const ReferenceLine &reference_line,             // 参考线
       const std::vector<SLPoint> &sl_reference_line,   // 参考线的sl值
@@ -75,9 +74,8 @@ class PathTimeGraph {
       const;  // 动态规划加密路径点
 
   // 二次规划相关
-  void GenerateConvexSpace(
-      double static_obs_length,
-      double static_obs_width);  // 根据dp_path,输出l_minx,l_max
+  // 根据dp_path,输出l_minx,l_max
+  void GenerateConvexSpace(double static_obs_length, double static_obs_width);
   int FindNearIndex(const std::vector<SLPoint> &dp_path_points_dense, double s);
   bool PathQuadraticProgramming();
   void QpPathInterpolation(int interpolation_num, double ds);

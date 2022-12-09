@@ -1,6 +1,8 @@
 #pragma once
 
-#include <cmath>
+#include <stdint.h>
+
+#include <cinttypes>
 
 #include "EMPlanner/trajectory.hpp"
 namespace ADPlanning {
@@ -13,7 +15,7 @@ class LocalizationEstimate {
   LocalizationEstimate(/* args */);
   ~LocalizationEstimate() = default;
 
-  void UpdateLocalizationInfo(u_int64_t time, Trajectory trajectory);
+  void UpdateLocalizationInfo(uint64_t time, Trajectory trajectory);
   const LocalizationInfo localization_info() const;
 };
 }  // namespace ADPlanning

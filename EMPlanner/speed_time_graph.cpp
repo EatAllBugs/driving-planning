@@ -362,7 +362,6 @@ void SpeedTimeGraph::GenerateCovexSpace() {
   int path_end_index = sl_planning_path_.size();
   int dp_end_index = dp_speed_points_.size();
 
-  // 此处不用找缓存
   // 此处施加动力学约束，通过曲率和横向加速度计算速度限制
   for (int i = 1; i < n; i++) {
     double cur_s = dp_speed_points_[i].s;

@@ -14,7 +14,8 @@ const std::vector<MapPoint> RoutingPath::routing_path_points() const {
 
 void RoutingPath::set_routing_path(
     const std::vector<MapPoint> routing_path_point) {
-  routing_path_points_ = routing_path_point;
+  routing_path_points_.assign(routing_path_point.begin(),
+                              routing_path_point.end());
 }
 
 // 从csv文件中初始化routing_path
@@ -113,24 +114,4 @@ void RoutingPath::CreatePath() {
     routing_path_points_.push_back(point);
   }
 }
-
-/*文件路径的表示
-绝对路径
-例如：
-pDummyFile = fopen（"D:\\vctest\\glTexture\\texture\\dummy.bmp", "rb"）；
-
-//给出了从盘符开始的全部路径，这里需要注意的是“\”要用双斜线"\\"或者反斜线“/”
-vc工程默认访问的目录是工程目录（即c++文件所在目录）， 相对路径有以下多种形式：
-
-pDummyFile = fopen（"dummy.bmp", "rb"）；
-//bmp文件就在vc工程目录下，**和dsw文件同属一个目录**。 pDummyFile =
-fopen（"..\\texture\\dummy.bmp", "rb"）；
-//表示bmp文件在工程目录的同级目录texture中，因此路径是先退出工程目录再进入texture目录访问到bmp
-//文件。  **“..”表示退到当前目录的上一级目录（父目录）** pDummyFile =
-fopen（".\\texture\\dummy.bmp", "rb"）；
-//表示bmp文件就在工程目录的子目录texture中。
-// **“.”表示当前默认目录，即工程目录，然后在进入其子目录texture访问到文件.
-注意，对相对路径而言，路径表示中的“\”也要用双斜线"\\"或者反斜线“/”**
-
-*/
 }  // namespace ADPlanning

@@ -1,5 +1,9 @@
 #include "localization_estimate.hpp"
 
+#include <stdint.h>
+
+#include <valarray>
+
 namespace ADPlanning {
 LocalizationEstimate::LocalizationEstimate(/* args */) {
   localization_info_.t = 0;
@@ -22,7 +26,7 @@ const LocalizationInfo LocalizationEstimate::localization_info() const {
   return localization_info_;
 }
 // 根据当前时间和当前规划的轨迹，更新定位信息，假设控制完全跟踪规划
-void LocalizationEstimate::UpdateLocalizationInfo(u_int64_t time,
+void LocalizationEstimate::UpdateLocalizationInfo(uint64_t time,
                                                   Trajectory trajectory) {
   if (time == 0) {
     localization_info_.x = 0;
@@ -56,15 +60,15 @@ void LocalizationEstimate::UpdateLocalizationInfo(u_int64_t time,
 
     localization_info_.v = trajectory_points[i].v;
     localization_info_.vx =
-        trajectory_points[i].v * cos(trajectory_points[i].heading);
+        trajectory_points[i].v * std::cos(trajectory_points[i].heading);
     localization_info_.vy =
-        trajectory_points[i].v * sin(trajectory_points[i].heading);
+        trajectory_points[i].v * std::sin(trajectory_points[i].heading);
 
     localization_info_.a = trajectory_points[i].a;
     localization_info_.ax =
-        trajectory_points[i].a * cos(trajectory_points[i].heading);
+        trajectory_points[i].a * std::cos(trajectory_points[i].heading);
     localization_info_.ay =
-        trajectory_points[i].a * sin(trajectory_points[i].heading);
+        trajectory_points[i].a * std::sin(trajectory_points[i].heading);
 
     localization_info_.heading = trajectory_points[i].heading;
     localization_info_.kappa = trajectory_points[i].kappa;

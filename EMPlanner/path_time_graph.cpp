@@ -6,7 +6,7 @@ PathTimeGraph::PathTimeGraph(const ReferenceLine &reference_line,
   reference_line_ = reference_line;
   config_ = emplaner_conf;
 
-  // 初始化根据参考线，以自车的投影点为原点，生产sl
+  // 初始化根据参考线，以自车的投影点为原点，生成sl
   InitSAxis(reference_line, &sl_reference_line_);
 }
 
@@ -56,7 +56,7 @@ void PathTimeGraph::InitSAxis(const ReferenceLine &reference_line,
   }
 }
 
-/*-------------------------------------设置自车位置和障碍物部分-------------------------------------------------------------*/
+// 设置自车位置和障碍物部分
 void PathTimeGraph::SetStartPointSl(TrajectoryPoint plan_start_point) {
   // 计算投影
   // 坐标转换
@@ -79,7 +79,6 @@ void PathTimeGraph::SetStartPointSl(TrajectoryPoint plan_start_point) {
                    start_match_points, start_project_points, points_fcs);
   sl_plan_start_ = points_fcs.front();
 
-  // 调试
   sl_plan_start_.s = 0;
   sl_plan_start_.l = 0;
 
@@ -124,7 +123,6 @@ void PathTimeGraph::SetStaticObstaclesSl(
                    obstacles_match_points, obstacles_project_points,
                    sl_static_obstacles_);
 
-  // 调试
   sl_static_obstacles_.resize(1);
   sl_static_obstacles_[0].s = 30;
   sl_static_obstacles_[0].l = -0.5;
@@ -132,7 +130,7 @@ void PathTimeGraph::SetStaticObstaclesSl(
   sl_static_obstacles_[0].ddl_ds = 0;
 }
 // 需要加深理解，引用，指针作为参数，对原来变量的影响
-//--------------------------------------坐标变换-------------------------------------------------
+// 坐标变换
 void PathTimeGraph::Cartesian2Frenet(
     const ReferenceLine &reference_line,              // 参考线
     const std::vector<SLPoint> &sl_reference_line,    // 参考线的sl值
@@ -237,16 +235,11 @@ void PathTimeGraph::Frenet2Cartesian(
     const ReferenceLine &reference_line,            // 参考线
     const std::vector<SLPoint> &sl_reference_line,  // 参考线的sl值
     const std::vector<SLPoint> &points_fcs,         // 待转换的点
-    std::vector<ReferencePoint> *points_wcs) {}
+    std::vector<ReferencePoint> *points_wcs) {
+  //(TODO)
+}
 
-/*
-注：形参是声明的引用，注意这个引用没有初始化，在调用函数时实现了初始化，做到了真正意义变量传递
-引用和指针做形参是很常见的问题，但是它们在做参数的时候是有区别的
-指针他是一个变量，有具体的值，他的值是一个地址。
-而引用是对一个变量的引用，是变量的别名，并且在引用的时候必须要初始化。
-*/
-
-/*----------------------------------------路径动态规划部分开始------------------------------------------------------------------------------------*/
+// 路径动态规划部分开始
 
 void PathTimeGraph::PathDynamicPlanning() {
   int rows = sample_points_.size();
@@ -271,7 +264,8 @@ void PathTimeGraph::PathDynamicPlanning() {
             CalcPathCost(sample_points_[k][j - 1], sample_points_[i][j]);
         if (cost < sample_points_[i][j].cost2start) {
           sample_points_[i][j].cost2start = cost;
-          sample_points_[i][j].pre_mincost_row = k;  // 记录最优路径上一列的行号
+          // 记录最优路径上一列的行号
+          sample_points_[i][j].pre_mincost_row = k;
         }
       }
     }
@@ -313,41 +307,42 @@ double PathTimeGraph::CalcPathCost(SLPoint point_satrt, SLPoint point_end) {
     quintic_path_point.s =
         point_satrt.s + (i + 1) * (point_end.s - point_satrt.s) / 10;
     quintic_path_point.l = qc[0] + qc[1] * quintic_path_point.s +
-                           qc[2] * pow(quintic_path_point.s, 2) +
-                           qc[3] * pow(quintic_path_point.s, 3) +
-                           qc[4] * pow(quintic_path_point.s, 4) +
-                           qc[5] * pow(quintic_path_point.s, 5);
+                           qc[2] * std::pow(quintic_path_point.s, 2) +
+                           qc[3] * std::pow(quintic_path_point.s, 3) +
+                           qc[4] * std::pow(quintic_path_point.s, 4) +
+                           qc[5] * std::pow(quintic_path_point.s, 5);
     quintic_path_point.dl_ds = qc[1] + 2 * qc[2] * quintic_path_point.s +
-                               3 * qc[3] * pow(quintic_path_point.s, 2) +
-                               4 * qc[4] * pow(quintic_path_point.s, 3) +
-                               5 * qc[5] * pow(quintic_path_point.s, 4);
+                               3 * qc[3] * std::pow(quintic_path_point.s, 2) +
+                               4 * qc[4] * std::pow(quintic_path_point.s, 3) +
+                               5 * qc[5] * std::pow(quintic_path_point.s, 4);
     quintic_path_point.ddl_ds = 2 * qc[2] + 6 * qc[3] * quintic_path_point.s +
-                                12 * qc[4] * pow(quintic_path_point.s, 2) +
-                                20 * qc[5] * pow(quintic_path_point.s, 3);
+                                12 * qc[4] * std::pow(quintic_path_point.s, 2) +
+                                20 * qc[5] * std::pow(quintic_path_point.s, 3);
     quintic_path_point.dddl_ds = 6 * qc[3] + 24 * qc[4] * quintic_path_point.s +
-                                 60 * qc[5] * pow(quintic_path_point.s, 2);
+                                 60 * qc[5] * std::pow(quintic_path_point.s, 2);
     // 平滑代价
-    cost_smooth = cost_smooth +
-                  config_.dp_cost_dl * pow(quintic_path_point.dl_ds, 2) +
-                  config_.dp_cost_ddl * pow(quintic_path_point.ddl_ds, 2) +
-                  config_.dp_cost_dddl * pow(quintic_path_point.dddl_ds, 2);
-    // 如果ddl或者切向角过大，则增加cost
-    ////此处导致代价都很大
+    cost_smooth =
+        cost_smooth +
+        config_.dp_cost_dl * std::pow(quintic_path_point.dl_ds, 2) +
+        config_.dp_cost_ddl * std::pow(quintic_path_point.ddl_ds, 2) +
+        config_.dp_cost_dddl * std::pow(quintic_path_point.dddl_ds, 2);
+    // 如果ddl或者切向角过大，则增加cost, 此处导致代价都很大
     if (abs(quintic_path_point.ddl_ds) > 0.5 ||
         abs(atan(quintic_path_point.dl_ds)) > 0.4 * M_PI) {
       cost_smooth = cost_smooth + 10e7;
     }
-    // 参考线代价
-    cost_ref = config_.dp_cost_ref * pow(quintic_path_point.l, 2);
 
-    // 碰撞代价,这里做了非常简化的质点模型，认为障碍物就是一个点
+    // 参考线代价
+    cost_ref = config_.dp_cost_ref * std::pow(quintic_path_point.l, 2);
+
+    // 碰撞代价,这里做了非常简化的质点模型，认为障碍物就是一个点,
     // 求该点到障碍物的最小距离
     double min_d = DBL_MAX;
     for (const auto &obstacle : sl_static_obstacles_)  // 遍历静态障碍物
     {
       double dlon = quintic_path_point.s - obstacle.s;
       double dlat = quintic_path_point.l - obstacle.l;
-      double square_d = pow(dlon, 2) + pow(dlat, 2);
+      double square_d = std::pow(dlon, 2) + std::pow(dlat, 2);
       min_d = std::min(min_d, square_d);
     }
     // cost_collision =
@@ -358,8 +353,6 @@ double PathTimeGraph::CalcPathCost(SLPoint point_satrt, SLPoint point_end) {
       cost_collision = cost_collision + config_.dp_cost_collision * 500 / min_d;
     else
       cost_collision = cost_collision + config_.dp_cost_collision * 10e5;
-
-    // 此处忽略左右判断？？？
   }
   // 三个代价不是一个数量级
   return cost_smooth + cost_ref + cost_collision;
@@ -368,9 +361,11 @@ double PathTimeGraph::CalcPathCost(SLPoint point_satrt, SLPoint point_end) {
 void PathTimeGraph::CalcQuinticCoeffient(
     const SLPoint &point_s, const SLPoint &point_e,
     std::vector<double> *QuinticCoeffient) {
-  /* % l = a0 + a1*s + a2*s^2 + a3*s^3 + a4*s^4 + a5*s^5
-  % l' = a1 + 2 * a2 * s + 3 * a3 * s^2 + 4 * a4 * s^3 + 5 * a5 * s^4
-  % l'' = 2 * a2 + 6 * a3 * s + 12 * a4 * s^2 + 20 * a5 * s^3*/
+  /*
+  l = a0 + a1*s + a2*s^2 + a3*s^3 + a4*s^4 + a5*s^5
+  l' = a1 + 2 * a2 * s + 3 * a3 * s^2 + 4 * a4 * s^3 + 5 * a5 * s^4
+  l'' = 2 * a2 + 6 * a3 * s + 12 * a4 * s^2 + 20 * a5 * s^3
+  */
   double start_s = point_s.s;
   double start_s2 = pow(point_s.s, 2);
   double start_s3 = pow(point_s.s, 3);
@@ -401,18 +396,16 @@ void PathTimeGraph::CalcQuinticCoeffient(
   }
 }
 
-void PathTimeGraph::CreateSamplingPoint(
-    const int row, const int col, const double sample_s,
-    const double
-        sample_l) { /*       0   1   2   3
-                           0 x   x   x   x
-                           1 x   x   x   x
-                      -----2-x---x---x---x----------------reference_line
-                           3 x   x   x   x
-                           4 x   x   x   x
-
-
-                   */
+void PathTimeGraph::CreateSamplingPoint(const int row, const int col,
+                                        const double sample_s,
+                                        const double sample_l) {
+  /*                 0   1   2   3
+                   0 x   x   x   x
+                   1 x   x   x   x
+              -----2-x---x---x---x----------------reference_line
+                   3 x   x   x   x
+                   4 x   x   x   x
+  */
   sample_points_.resize(row);
   for (int j = 0; j < col; j++) {
     for (int i = 0; i < row; i++) {
@@ -423,17 +416,10 @@ void PathTimeGraph::CreateSamplingPoint(
       sample_points_[i][j].ddl_ds = 0;
     }
   }
-
-}  // 对sample_points_进行操作
+}
 
 void PathTimeGraph::DpPathInterpolation(int interpolation_num, double ds) {
-  std::vector<SLPoint> dp_path_points_dense;  // ds1，60个。向前60m
-  // //调试增加
-  // dp_path_points_[0].s = 0;
-  // dp_path_points_[0].l = 0;
-  // dp_path_points_[0].dl_ds = 0;
-  // dp_path_points_[0].ddl_ds = 0;
-  // //调试增加
+  std::vector<SLPoint> dp_path_points_dense;
   int size = dp_path_points_.size();
   int dense_size = dp_path_points_.back().s / ds + 1;
   for (int i = 0; i < size - 1; i++) {
@@ -469,13 +455,11 @@ void PathTimeGraph::DpPathInterpolation(int interpolation_num, double ds) {
   dp_path_points_dense_ = dp_path_points_dense;
 }
 
-/*----------------------------------------路径动态规划结束------------------------------------------------------------------------------------*/
-
 void PathTimeGraph::GenerateConvexSpace(double static_obs_length,
                                         double static_obs_width) {
-  // 0.初始化l_min,l_max为道路边界
-  // 1.找到每个障碍物的s_head,s_end
-  // 2.找到dp_path_s 中，与s_head s_end最近的s的编号。
+  // 初始化l_min,l_max为道路边界
+  // 找到每个障碍物的s_head,s_end
+  // 找到dp_path_s 中，与s_head s_end最近的s的编号。
   // 如果是向左绕行，则设置l_min
   // 如果向右绕行，则设置l_max
   int size = dp_path_points_dense_.size();
@@ -526,20 +510,20 @@ int PathTimeGraph::FindNearIndex(
 
 bool PathTimeGraph::PathQuadraticProgramming() {
   /*
-  % 0.5*x'Hx + f'*x = min
-  % subject to A*x <= b 凸空间约束
-  %            Aeq*x = beq 加加速度约束
-  %            lb <= x <= ub;
-  % 输入：l_min l_max 点的凸空间
-  % w_cost_l 参考线代价
-  % w_cost_dl ddl dddl 光滑性代价
-  % w_cost_centre 凸空间中央代价
-   % w_cost_end_l dl dd1 终点的状态代价(希望path的终点状态为(0, 0, 0))
+  0.5*x'Hx + f'*x = min
+  subject to A*x <= b 凸空间约束
+             Aeq*x = beq 加加速度约束
+             lb <= x <= ub;
+  输入：l_min l_max 点的凸空间
+  w_cost_l 参考线代价
+  w_cost_dl ddl dddl 光滑性代价
+  w_cost_centre 凸空间中央代价
+  w_cost_end_l dl dd1 终点的状态代价(希望path的终点状态为(0, 0, 0))
 
-   % host_d1, d2 host质心到前后轴的距离
-   % host_w host的宽度
-   % plan_start_l, dl, ddl 规划起点
-   % 输出 qp_path_l dl ddl 二次规划输出的曲线
+  host_d1, d2 host质心到前后轴的距离
+  host_w host的宽度
+  plan_start_l, dl, ddl 规划起点
+  输出 qp_path_l dl ddl 二次规划输出的曲线
   */
 
   // H_L H_DL H_DDL H_DDDL Aeq beq A b 初始化

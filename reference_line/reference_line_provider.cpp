@@ -1,14 +1,14 @@
 #include "reference_line_provider.hpp"
 
+#include <limits>
+
 namespace ADPlanning {
 ReferenceLineProvider::ReferenceLineProvider() {}
 
 void ReferenceLineProvider::Provide(
     const std::vector<MapPoint> &routing_path_points,
     const LocalizationInfo &localzation_info,
-    const ReferenceLine &pre_reference_line, ReferenceLine &reference_line)
-
-{
+    const ReferenceLine &pre_reference_line, ReferenceLine &reference_line) {
   // 1.将全局路径转换为自然坐标系参考路径，增加heading和kappa信息
   RoutingPathToFrenetPath(routing_path_points, &frenet_path_);
   // 2.找到host在全局路径的匹配点和投影点
@@ -44,7 +44,8 @@ void ReferenceLineProvider::Provide(
   smoothed_reference_line_ = reference_line;
 }
 
-// 1.寻找匹配点,计算匹配点在全局路径的投影.//此处与老王有所区别，将存储上一次的匹配点的功能放在Provider函数内，另外是首次运行由provide函数做判断
+// 1.寻找匹配点,计算匹配点在全局路径的投影.
+// 此处与老王有所区别，将存储上一次的匹配点的功能放在Provider函数内，另外是首次运行由provide函数做判断
 // 公共函数，其他地方也可以调用，因此不能在其中操作其私有变量
 void ReferenceLineProvider::FindMatchAndProjectPoint(
     const ReferenceLine &frenet_path, const std::vector<MapPoint> &map_points,
@@ -57,8 +58,8 @@ void ReferenceLineProvider::FindMatchAndProjectPoint(
   match_points.resize(map_points.size());
   project_points.resize(map_points.size());
 
-  for (int i = 0; i < map_points.size(); i++) {
-    double min_distance = DBL_MAX;
+  for (std::size_t i = 0; i < map_points.size(); i++) {
+    double min_distance = std::numeric_limits<double>::max();
     for (int j = index_start_search; j < size; j++) {
       double distance = pow(map_points[i].x - frenet_path_points[j].x, 2) +
                         pow(map_points[i].y - frenet_path_points[j].y, 2);

@@ -21,8 +21,4 @@ class ReferenceLineSmoother {
       const std::vector<std::pair<double, double>> &raw_point2d,
       std::vector<std::pair<double, double>> *ptr_smoothed_point2d);
 };
-
-// double weight_smooth; // weight_fem_pos_deviation;
-// (x1+x3-2x2)^2+(y1+y3-2y2)^2;平滑代价 double weight_path_length;// double
-// weight_ref_deviation;
 }  // namespace ADPlanning

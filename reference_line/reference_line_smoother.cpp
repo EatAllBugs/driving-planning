@@ -3,15 +3,15 @@
 #include "OsqpEigen/OsqpEigen.h"
 #include "eigen3/Eigen/Eigen"
 namespace ADPlanning {
-// 使用：将类的初始化参数 传递给 成员变量
+
 ReferenceLineSmoother::ReferenceLineSmoother(
     const ReferenceLineSmootherConfig &config)
     : config_(config) {}
 
 void ReferenceLineSmoother::Smooth(const ReferenceLine &raw_reference_line,
                                    ReferenceLine &smoothed_reference_line) {
-  smoothed_reference_line =
-      raw_reference_line;  // 将平滑参考线初始化为初始参号线
+  // 将平滑参考线初始化为初始参考线
+  smoothed_reference_line = raw_reference_line;
   std::vector<std::pair<double, double>> raw_point2d;
   std::vector<std::pair<double, double>> smoothed_point2d;
   for (const auto point : raw_reference_line.reference_points()) {
@@ -52,7 +52,7 @@ bool ReferenceLineSmoother::DiscretePointsSmooth(
   A.setIdentity();
 
   // 赋值f,lb,ub;
-  //  MatrixXd下标从(0,0)开始,(1,2)表示第1行第2列
+  // MatrixXd下标从(0,0)开始,(1,2)表示第1行第2列
   for (int i = 0; i < n; i++) {
     f(2 * i) = raw_point2d[i].first;
     f(2 * i + 1) = raw_point2d[i].second;
@@ -73,6 +73,7 @@ bool ReferenceLineSmoother::DiscretePointsSmooth(
     A1.insert(2 * j + 1, 2 * j + 3) = -2;
     A1.insert(2 * j + 1, 2 * j + 5) = 1;
   }
+
   // 赋值A2
   for (int k = 0; k < n - 1; k++) {
     A2.insert(2 * k, 2 * k) = 1;

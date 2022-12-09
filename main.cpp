@@ -19,17 +19,19 @@
 
 int main(int argc, char const *argv[]) {
   // 构造配置
-  std::unique_ptr<EMPlannerConfig> config = std::make_unique<EMPlannerConfig>();
+  std::unique_ptr<ADPlanning::EMPlannerConfig> config =
+      std::make_unique<ADPlanning::EMPlannerConfig>();
 
   // 构造路由模块指针
-  std::unique_ptr<RoutingPath> routing_path = std::make_unique<RoutingPath>();
+  std::unique_ptr<ADPlanning::RoutingPath> routing_path =
+      std::make_unique<ADPlanning::RoutingPath>();
 
   // 定位信息指针
-  std::unique_ptr<LocalizationEstimate> localization =
-      std::unique_ptr<LocalizationEstimate>();
+  std::unique_ptr<ADPlanning::LocalizationEstimate> localization =
+      std::unique_ptr<ADPlanning::LocalizationEstimate>();
   // 障碍物信息
-  std::unique_ptr<PerceptionObstacle> perception =
-      std::unique_ptr<PerceptionObstacle>();
+  std::unique_ptr<ADPlanning::PerceptionObstacle> perception =
+      std::unique_ptr<ADPlanning::PerceptionObstacle>();
   // 构造全局路径
 
   routing_path->CreatePath();
@@ -37,12 +39,12 @@ int main(int argc, char const *argv[]) {
   perception->AddStaticObstacle(0, 400, 20, 0, 0);
   auto routing_path_points = routing_path->routing_path_points();
 
-  LocalizationInfo localization_info;
-  ReferenceLine reference_line;      // 当前参考线
-  ReferenceLine pre_reference_line;  // 上一时刻参考线
+  ADPlanning::LocalizationInfo localization_info;
+  ADPlanning::ReferenceLine reference_line;      // 当前参考线
+  ADPlanning::ReferenceLine pre_reference_line;  // 上一时刻参考线
 
-  Trajectory trajectory;
-  Trajectory pre_trajectory;
+  ADPlanning::Trajectory trajectory;
+  ADPlanning::Trajectory pre_trajectory;
   uint64_t time = 0;
 
   while (1) {
@@ -60,26 +62,27 @@ int main(int argc, char const *argv[]) {
     if (time % 100 < 1e-10) {
       // 线程2 100ms
       //  2.参考线生成,参考新默认-30m~150m
-      std::unique_ptr<ReferenceLineProvider> reference_line_provider =
-          std::unique_ptr<ReferenceLineProvider>();
+      std::unique_ptr<ADPlanning::ReferenceLineProvider>
+          reference_line_provider =
+              std::unique_ptr<ADPlanning::ReferenceLineProvider>();
       pre_reference_line = reference_line;
       // 传参应该是数据类型，而不是类的对象
       reference_line_provider->Provide(routing_path_points, localization_info,
                                        pre_reference_line, reference_line);
       // 2.规划器规划
-      std::unique_ptr<EMPlanner> em_planner =
-          std::make_unique<EMPlanner>(*config);  // 规划器初始化
-      TrajectoryPoint plan_start;
-      Trajectory stitch_trajectory;
+      std::unique_ptr<ADPlanning::EMPlanner> em_planner =
+          std::make_unique<ADPlanning::EMPlanner>(*config);  // 规划器初始化
+      ADPlanning::TrajectoryPoint plan_start;
+      ADPlanning::Trajectory stitch_trajectory;
       pre_trajectory = trajectory;
       em_planner->CalPlaningStartPoint(pre_trajectory, localization_info,
-                                       plan_start, stitch_trajectory);
-      std::vector<ReferencePoint> xy_virtual_obstacles;
+                                       &plan_start, &stitch_trajectory);
+      std::vector<ADPlanning::ReferencePoint> xy_virtual_obstacles;
       em_planner->Plan(time, plan_start, reference_line, localization,
                        perception, trajectory, xy_virtual_obstacles);
-      perception->UpdateVirtualObstacle(
-          std::vector<ReferencePoint> xy_virtual_obstacles);
+      perception->UpdateVirtualObstacle(xy_virtual_obstacles);
     }
+
     time++;
     std::usleep(1000);  // 延时1ms
   }
