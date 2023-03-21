@@ -1,3 +1,7 @@
+/**
+ * Copyright (C) 2023 by EatAllBugs Limited. All rights reserved.
+ * EatAllBugs <lysxx717@gmail.com>
+ */
 #include "perception_obstacle.hpp"
 
 namespace ADPlanning {
@@ -9,25 +13,24 @@ const std::vector<ObstacleInfo> PerceptionObstacle::dynamic_obstacles() const {
   return dynamic_obstacles_;
 }
 
-void PerceptionObstacle::UpdateObstacleInfo(int time,
-                                            LocalizationInfo LocalizationInfo) {
-  // 静态障碍物
+void PerceptionObstacle::UpdateObstacleInfo(
+    const int time, const LocalizationInfo& LocalizationInfo) {
   ObstacleInfo obs0;
-  obs0.ID = 0;
+  obs0.id = 0;
   obs0.x = 400;
   obs0.y = 20;
   obs0.v = 0;
-
-  // 静态障碍物1
 }
 
-void PerceptionObstacle::AddStaticObstacle(int id, double init_x, double init_y,
-                                           double init_heading, double init_v) {
+void PerceptionObstacle::AddStaticObstacle(const int id, const double init_x,
+                                           const double init_y,
+                                           const double init_heading,
+                                           const double init_v) {
   ObstacleInfo obs;
   if (static_obstacles_.empty()) {
-    obs.ID = 0;
+    obs.id = 0;
   } else {
-    obs.ID = static_obstacles_.size() - 1;
+    obs.id = static_obstacles_.size() - 1;
   }
   obs.init_x = init_x;
   obs.init_y = init_y;
@@ -41,14 +44,15 @@ void PerceptionObstacle::AddStaticObstacle(int id, double init_x, double init_y,
   static_obstacles_.push_back(obs);
 }
 
-void PerceptionObstacle::AddDynamicObstacle(int id, double init_x,
-                                            double init_y, double init_heading,
-                                            double init_v) {
+void PerceptionObstacle::AddDynamicObstacle(const int id, const double init_x,
+                                            const double init_y,
+                                            const double init_heading,
+                                            const double init_v) {
   ObstacleInfo obs;
   if (dynamic_obstacles_.empty()) {
-    obs.ID = 0;
+    obs.id = 0;
   } else {
-    obs.ID = static_obstacles_.size() - 1;
+    obs.id = static_obstacles_.size() - 1;
   }
   obs.init_x = init_x;
   obs.init_y = init_y;

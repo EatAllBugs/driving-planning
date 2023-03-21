@@ -1,7 +1,7 @@
-/*
-  此类的功能主要用于构造参考线类型的变量
-*/
-
+/**
+ * Copyright (C) 2023 by EatAllBugs Limited. All rights reserved.
+ * EatAllBugs <lysxx717@gmail.com>
+ */
 #pragma once
 
 #include <vector>
@@ -12,19 +12,48 @@ class ReferenceLine {
  public:
   ReferenceLine() = default;
   ~ReferenceLine() = default;
-  void set_reference_points(std::vector<ReferencePoint> reference_points);
-  void set_match_point_index(int index);
-  void set_host_match_point(ReferencePoint host_match_point);
-  void set_host_project_point(ReferencePoint host_project_point);
+  /**
+   * @brief Set the reference points object
+   * @param reference_points
+   */
+  void set_reference_points(
+      const std::vector<ReferencePoint>& reference_points);
 
+  /**
+   * @brief Set the match point index object
+   * @param index
+   */
+  void set_match_point_index(const int index);
+
+  /**
+   * @brief Set the host match point object
+   * @param host_match_point
+   */
+  void set_host_match_point(const ReferencePoint& host_match_point);
+
+  /**
+   * @brief Set the host project point object
+   * @param host_project_point
+   */
+  void set_host_project_point(const ReferencePoint& host_project_point);
+
+  /**
+   * @brief
+   * @return const std::vector<ReferencePoint>
+   */
   const std::vector<ReferencePoint> reference_points() const;
+
+  /**
+   * @brief
+   * @return const int
+   */
   const int match_point_index() const;
   const ReferencePoint host_project_point() const;
   const ReferencePoint host_match_point() const;
 
  private:
-  std::vector<ReferencePoint> reference_points_;  // 参考点类
-  int match_point_index_;                         // 自车匹配点索引
+  std::vector<ReferencePoint> reference_points_;
+  int match_point_index_;
   ReferencePoint host_project_point_;
   ReferencePoint host_match_point_;
 };

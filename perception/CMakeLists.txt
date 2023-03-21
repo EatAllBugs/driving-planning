@@ -7,5 +7,3 @@ target_include_directories(perception PUBLIC
     "usr/include"
     "usr/local/include"
 )
-
-# target_link_libraries(perception PUBLIC              )

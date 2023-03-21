@@ -1,3 +1,7 @@
+/**
+ * Copyright (C) 2023 by EatAllBugs Limited. All rights reserved.
+ * EatAllBugs <lysxx717@gmail.com>
+ */
 #include "reference_line/reference_line_smoother.hpp"
 
 #include "OsqpEigen/OsqpEigen.h"
@@ -34,15 +38,15 @@ bool ReferenceLineSmoother::DiscretePointsSmooth(
     std::vector<std::pair<double, double>> *smoothed_point2d) {
   int n = raw_point2d.size();
 
-  // 初始化A1,A2,A3，f,lb,ub矩阵
-  // 平滑代价系数矩阵，x'A1'A1x, (n-2)
+  // 初始化A1,A2,A3, f,lb,ub矩阵
+  // 平滑代价系数矩阵, x'A1'A1x, (n-2)
   Eigen::SparseMatrix<double> A1(2 * n, 2 * n);
   // 路径长度代价矩阵 x'A2'A2x,(n-1)
   Eigen::SparseMatrix<double> A2(2 * n, 2 * n);
   // 参考线偏离代价矩阵 x'A3'A3x,单位阵
   Eigen::SparseMatrix<double> A3(2 * n, 2 * n);
-
-  Eigen::SparseMatrix<double> H(2 * n, 2 * n);  // 必须是稀疏矩阵
+  // 必须是稀疏矩阵
+  Eigen::SparseMatrix<double> H(2 * n, 2 * n);
   Eigen::VectorXd f = Eigen::VectorXd::Zero(2 * n);
   Eigen::SparseMatrix<double> A(2 * n, 2 * n);
   Eigen::VectorXd lb = Eigen::VectorXd::Zero(2 * n);

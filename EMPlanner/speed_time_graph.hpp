@@ -1,6 +1,8 @@
-#pragma once
+/**
+ * Copyright (C) 2023 by EatAllBugs Limited. All rights reserved.
+ * EatAllBugs <lysxx717@gmail.com>
+ */
 
-// 此类用于速度规划功能模块的实现
 #pragma once
 
 #include <float.h>
@@ -20,57 +22,147 @@
 namespace ADPlanning {
 class SpeedTimeGraph {
  public:
-  SpeedTimeGraph(ReferenceLine planning_path,
-                 EMPlannerConfig emplaner_conf);  // 传入规划好的路径
+  SpeedTimeGraph(const ReferenceLine &planning_path,
+                 const EMPlannerConfig &emplanner_conf);
   ~SpeedTimeGraph() = default;
 
+  /**
+   * @brief
+   * @return const Trajectory
+   */
   const Trajectory trajectory() const;
-  // 虚拟障碍物的xy坐标
+
+  /**
+   * @brief
+   * @return const std::vector<ObstacleInfo>
+   */
   const std::vector<ObstacleInfo> xy_virtual_obstacles() const;
+
+  /**
+   * @brief
+   * @return std::vector<STLine>
+   */
   std::vector<STLine> st_obstacles();
+
+  /**
+   * @brief
+   * @return const std::vector<STPoint>
+   */
   const std::vector<STPoint> dp_speed_points() const;
+
+  /**
+   * @brief
+   * @return const std::vector<STPoint>
+   */
   const std::vector<STPoint> qp_speed_points() const;
+
+  /**
+   * @brief
+   * @return const std::vector<STPoint>
+   */
   const std::vector<STPoint> qp_speed_points_dense() const;
 
-  // 1.基于规划的轨迹，初始化坐标轴
-  void InitSAxis(const ReferenceLine planning_path);
+  /**
+   * @brief 基于规划的轨迹，初始化坐标轴
+   * @param planning_path
+   */
+  void InitSAxis(const ReferenceLine &planning_path);
 
-  // 计算速度规划的
+  /**
+   * @brief 计算速度规划的初始状态
+   * @param sl_plan_start
+   */
   void SetStartState(const SLPoint &sl_plan_start);
-  // 2.计算障碍物的ST位置
-  void SetDynamicObstaclesSL(const std::vector<ObstacleInfo> dynamic_obstacles);
 
+  /**
+   * @brief 计算障碍物的ST位置
+   * @param dynamic_obstacles
+   */
+  void SetDynamicObstaclesSL(
+      const std::vector<ObstacleInfo> &dynamic_obstacles);
+
+  /**
+   * @brief 生成STGraph
+   */
   void GenerateSTGraph();
-  // 3.采样
-  void CreateSmaplePoint(int row, int col);
-  // 4.动态规划
+
+  /**
+   * @brief Create a Smaple Point object
+   * @param row
+   * @param col
+   */
+  void CreateSmaplePoint(const int row, const int col);
+
+  /**
+   * @brief
+   */
   void SpeedDynamicPlanning();
-  double CalcDpCost(STPoint &point_s, STPoint &point_e);
+
+  /**
+   * @brief
+   * @param point_s
+   * @param point_e
+   * @return double
+   */
+  double CalcDpCost(const STPoint &point_s, const STPoint &point_e);
+
+  /**
+   * @brief
+   * @param point_s
+   * @param point_e
+   * @return double
+   */
   double CalcObsCost(const STPoint &point_s, const STPoint &point_e);
-  double CalcCollisionCost(double w_cost_obs, double min_dis);
 
-  // 5.二次规划
+  /**
+   * @brief
+   * @param w_cost_obs
+   * @param min_dis
+   * @return double
+   */
+  double CalcCollisionCost(const double w_cost_obs, const double min_dis);
+
+  /**
+   * @brief
+   */
   void GenerateCovexSpace();
-  int FindDpMatchIndex(double t);
-  bool SpeedQuadraticProgramming();
-  // 6.st加密
-  void SpeedQpInterpolation(int interpolation_num);
 
-  // 7.path和speed的合并
+  /**
+   * @brief
+   * @param t
+   * @return int
+   */
+  int FindDpMatchIndex(const double t);
+
+  /**
+   * @brief
+   * @return bool
+   */
+  bool SpeedQuadraticProgramming();
+
+  /**
+   * @brief
+   * @param interpolation_num
+   */
+  void SpeedQpInterpolation(const int interpolation_num);
+
+  /**
+   * @brief path和speed的合并
+   */
   void PathAndSpeedMerge();
 
  private:
   EMPlannerConfig emplaner_conf_;
   ReferenceLine planning_path_;
 
-  std::vector<ReferencePoint> planning_path_points_;  // 规划的参考线
-  std::vector<SLPoint> sl_planning_path_;             // 转换的sl坐标
+  std::vector<ReferencePoint> planning_path_points_;
+  std::vector<SLPoint> sl_planning_path_;
 
-  std::vector<SLPoint> sl_dynamic_obstacles_;  // 障碍物信息应该有ID
-  SLPoint plan_start_;                         // 规划起点
-  STPoint st_plan_start_;                      // 规划起点
-  std::vector<SLPoint> sl_virtual_obstacles_;  // 虚拟障碍物的sl坐标
-  std::vector<ReferencePoint> xy_virtual_obstacles_;  // 虚拟障碍物的xy坐标
+  std::vector<SLPoint> sl_dynamic_obstacles_;
+  SLPoint plan_start_;
+  STPoint st_plan_start_;
+  std::vector<SLPoint> sl_virtual_obstacles_;
+  std::vector<ReferencePoint> xy_virtual_obstacles_;
 
   std::vector<STLine> st_obstacles_;
   std::vector<std::vector<STPoint>> sample_points_;
@@ -78,7 +170,6 @@ class SpeedTimeGraph {
   std::vector<STPoint> dp_speed_points_;
   std::vector<STPoint> dp_speed_points_dense_;
 
-  // 凸空间
   Eigen::VectorXd convex_s_lb_;
   Eigen::VectorXd convex_s_ub_;
   Eigen::VectorXd convex_ds_dt_lb_;

@@ -1,3 +1,7 @@
+/**
+ * Copyright (C) 2023 by EatAllBugs Limited. All rights reserved.
+ * EatAllBugs <lysxx717@gmail.com>
+ */
 #include <unistd.h>
 
 #include <memory>
@@ -19,7 +23,7 @@ int main(int argc, char const *argv[]) {
 
   // 构造路由模块指针
   std::unique_ptr<ADPlanning::RoutingPath> routing_path =
-      std::make_unique<RoutingPath>();  // 注意是make_unique
+      std::make_unique<RoutingPath>();
 
   // 定位信息指针
   std::unique_ptr<ADPlanning::LocalizationEstimate> localization =
@@ -31,19 +35,18 @@ int main(int argc, char const *argv[]) {
 
   routing_path->CreatePath();
   // 创建一个静态障碍物
-  perception->AddStaticObstacle(0, 400, 20, 0,
-                                0);  // 此代码执行错误，待查找原因
+  perception->AddStaticObstacle(0, 400, 20, 0, 0);
   auto routing_path_points = routing_path->routing_path_points();
 
   ADPlanning::LocalizationInfo localization_info;
-  ADPlanning::ReferenceLine reference_line;      // 当前参考线
-  ADPlanning::ReferenceLine pre_reference_line;  // 上一时刻参考线
+  ADPlanning::ReferenceLine reference_line;
+  ADPlanning::ReferenceLine pre_reference_line;
 
   ADPlanning::Trajectory trajectory;
   ADPlanning::Trajectory pre_trajectory;
   uint64_t time = 0;
 
-  // 2.参考线生成,参考新默认-30m~150m
+  // 参考线生成,参考新默认-30m~150m
   std::unique_ptr<ADPlanning::ReferenceLineProvider> reference_line_provider =
       std::make_unique<ADPlanning::ReferenceLineProvider>();
   pre_reference_line = reference_line;

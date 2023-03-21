@@ -1,3 +1,7 @@
+/**
+ * Copyright (C) 2023 by EatAllBugs Limited. All rights reserved.
+ * EatAllBugs <lysxx717@gmail.com>
+ */
 #include "reference_line_provider.hpp"
 
 #include <limits>
@@ -9,9 +13,7 @@ void ReferenceLineProvider::Provide(
     const std::vector<MapPoint> &routing_path_points,
     const LocalizationInfo &localzation_info,
     const ReferenceLine &pre_reference_line, ReferenceLine &reference_line) {
-  // 1.将全局路径转换为自然坐标系参考路径，增加heading和kappa信息
   RoutingPathToFrenetPath(routing_path_points, &frenet_path_);
-  // 2.找到host在全局路径的匹配点和投影点
   MapPoint host_xy;
   std::vector<MapPoint> vct_host_xy;
   host_xy.x = localzation_info.x;
@@ -19,12 +21,10 @@ void ReferenceLineProvider::Provide(
   vct_host_xy.push_back(host_xy);
   std::vector<ReferencePoint> host_match_points;
   std::vector<ReferencePoint> host_project_points;
-  if (pre_reference_line.reference_points().empty())  // 首次运行
-    FindMatchAndProjectPoint(
-        frenet_path_, vct_host_xy, 0, 50, host_match_points,
-        host_project_points);  // 找到车辆在全局路径的匹配匹配点
-  else                         // 非首次运行
-  {
+  if (pre_reference_line.reference_points().empty())
+    FindMatchAndProjectPoint(frenet_path_, vct_host_xy, 0, 50,
+                             host_match_points, host_project_points);
+  else {
     int pre_match_point_index = pre_reference_line.match_point_index();
     FindMatchAndProjectPoint(frenet_path_, vct_host_xy, pre_match_point_index,
                              5, host_match_points, host_project_points);
@@ -33,20 +33,17 @@ void ReferenceLineProvider::Provide(
   frenet_path_.set_host_match_point(host_match_points.front());
   frenet_path_.set_host_project_point(host_project_points.front());
 
-  // 截取初始参考线
   GetReferenceLine(frenet_path_, reference_line.host_match_point().index,
                    raw_reference_line_);
-  // 参考线平滑
-  ReferenceLineSmootherConfig smoother_config;  // 平滑配置
+  ReferenceLineSmootherConfig smoother_config;
   std::unique_ptr<ReferenceLineSmoother> smoother =
       std::make_unique<ReferenceLineSmoother>(smoother_config);
   smoother->Smooth(raw_reference_line_, reference_line);
   smoothed_reference_line_ = reference_line;
 }
 
-// 1.寻找匹配点,计算匹配点在全局路径的投影.
-// 此处与老王有所区别，将存储上一次的匹配点的功能放在Provider函数内，另外是首次运行由provide函数做判断
-// 公共函数，其他地方也可以调用，因此不能在其中操作其私有变量
+// 寻找匹配点,计算匹配点在全局路径的投影.
+// 此处与老王有所区别, 将存储上一次的匹配点的功能放在Provider函数内
 void ReferenceLineProvider::FindMatchAndProjectPoint(
     const ReferenceLine &frenet_path, const std::vector<MapPoint> &map_points,
     const int index_start_search, const int increase_count_limit,
@@ -71,11 +68,12 @@ void ReferenceLineProvider::FindMatchAndProjectPoint(
 
         increase_count = 0;
       } else {
-        // 如果距离增加，则计数+1。增加此部分为了避免在小半径连续转弯的情况，自车从前一时刻到当前时刻行走了具有两个极小值得道路，
+        // 如果距离增加，则计数+1。增加此部分为了避免在小半径连续转弯的情况,
+        // 自车从前一时刻到当前时刻行走了具有两个极小值得道路,
         // 而错误地将第一个极小值作为投影点，实际上是第二个才是投影点
         increase_count = increase_count + 1;
       }
-      // 如果distance连续增加50次就不要再遍历了，节省时间
+      // 如果distance连续增加50次就不要再遍历了, 节省时间
       if (increase_count > increase_count_limit) break;
     }
 
@@ -115,20 +113,19 @@ void ReferenceLineProvider::FindMatchAndProjectPoint(
   }
 }
 
-// 2.根据自车位置的匹配点，截取参考线 首次截取调用参考线平滑器，进行参考线平滑
+// 根据自车位置的匹配点，截取参考线 首次截取调用参考线平滑器，进行参考线平滑
 void ReferenceLineProvider::GetReferenceLine(
-    const ReferenceLine &frenet_path,
-    const int host_match_point_index,  // 车辆在全局path的索引
+    const ReferenceLine &frenet_path, const int host_match_point_index,
     ReferenceLine &raw_reference_line) {
   int start_index = -1;
   int len = frenet_path.reference_points().size();
-  //% 匹配点后面的点太少了，不够30个
+  // 匹配点后面的点太少了, 不够30个
   int host_match_index = 0;
   if (host_match_point_index - 30 < 0) {
     start_index = 0;
     host_match_index = host_match_point_index;
   }
-  //% 匹配点前面的点太少了，不够150个
+  // 匹配点前面的点太少了, 不够150个
   else if (host_match_point_index + 150 > len) {
     start_index = len - 180;
     host_match_index = 180 - host_match_point_index;
@@ -146,7 +143,7 @@ void ReferenceLineProvider::GetReferenceLine(
       frenet_path.reference_points().begin() + start_index + 180;
   std::vector<ReferencePoint> reference_points(it_start, it_end);
 
-  raw_reference_line.set_reference_points(reference_points);  // 0点发生变化
+  raw_reference_line.set_reference_points(reference_points);
   raw_reference_line.set_match_point_index(host_match_point_index);
 
   // 匹配点
@@ -155,28 +152,21 @@ void ReferenceLineProvider::GetReferenceLine(
   raw_reference_line_.set_host_project_point(frenet_path.host_project_point());
 }
 
-// 4.非首次截取进行平滑轨迹的拼接
+// 非首次截取进行平滑轨迹的拼接
 
-// 1.1 由全局路径转换参考线，即(x,y)->(x,y,heading,kappa)
-/*
-%该函数将计算path的切线方向与x轴的夹角和曲率
-%输入：path_x,y路径坐标
-%输出：path heading kappa 路径的heading和曲率
-%原理 heading = arctan(dy/dx);
-%     kappa = dheading/ds;
-%     ds = (dx^2 + dy^2)^0.5
-*/
-// const对象只能访问const类型的成员
+// 由全局路径转换参考线，即(x,y)->(x,y,heading,kappa)
+// 该函数将计算path的切线方向与x轴的夹角和曲率 输入 : path_x,
+// y路径坐标 输出 : path heading kappa 路径的heading和曲率 原理 heading =
+// arctan(dy / dx); kappa = dheading / ds; ds = (dx ^ 2 + dy ^ 2) ^ 0.5
 void ReferenceLineProvider::RoutingPathToFrenetPath(
     const std::vector<MapPoint> &routing_path_points,
     ReferenceLine *frenet_path) {
   auto points = routing_path_points;
   int size = points.size();
-  /*此部分可以通过构造2d矢量类，来统一计算，见apollo common::math::Vec2D
-  此处使用的是vector编程，后面再考虑使用eigen怎么操作
-  */
+  // 此部分可以通过构造2d矢量类, 来统一计算, 见apollo common::math::Vec2D
+  // 此处使用的是vector编程, 后面再考虑使用eigen怎么操作,
   // 前向差分，后向差分，差分中值
-  // 求heading
+  //  求heading
   std::vector<MapPoint> points_diff, points_diff_pre, points_diff_after,
       points_diff_fianl;
   std::vector<double> ds_final, points_heading;
@@ -203,7 +193,6 @@ void ReferenceLineProvider::RoutingPathToFrenetPath(
     points_heading.push_back(atan2(mp.y, mp.x));
   }
 
-  // 求kappa
   std::vector<double> heading_diff, heading_diff_pre, heading_diff_after,
       heading_diff_final, points_kappa;
   for (int i = 0; i < size - 1; i++) {
@@ -217,8 +206,8 @@ void ReferenceLineProvider::RoutingPathToFrenetPath(
   for (int i = 0; i < size; i++) {
     heading_diff_final.push_back((heading_diff_pre[i] + heading_diff_after[i]) /
                                  2);
-    // 为了防止dheading出现多一个2pi的错误，假设真实的dheading较小，用sin(dheading)
-    // 近似dheading
+    // 为了防止dheading出现多一个2pi的错误, 假设真实的dheading较小,
+    // 用sin(dheading) 近似dheading
     points_kappa.push_back(sin(heading_diff_final[i]) / ds_final[i]);
   }
   std::vector<ReferencePoint> reference_points;

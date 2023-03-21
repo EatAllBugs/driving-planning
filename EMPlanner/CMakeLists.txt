@@ -7,5 +7,3 @@ target_include_directories(EMPlanner PUBLIC
     "usr/include"
     "usr/local/include"
 )
-
-# target_link_libraries(perception PUBLIC)

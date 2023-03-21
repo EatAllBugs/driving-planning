@@ -1,3 +1,8 @@
+/**
+ * Copyright (C) 2023 by EatAllBugs Limited. All rights reserved.
+ * EatAllBugs <lysxx717@gmail.com>
+ */
+
 #include "localization_estimate.hpp"
 
 #include <stdint.h>
@@ -5,7 +10,7 @@
 #include <valarray>
 
 namespace ADPlanning {
-LocalizationEstimate::LocalizationEstimate(/* args */) {
+LocalizationEstimate::LocalizationEstimate() {
   localization_info_.t = 0;
 
   localization_info_.x = 0;
@@ -26,8 +31,8 @@ const LocalizationInfo LocalizationEstimate::localization_info() const {
   return localization_info_;
 }
 // 根据当前时间和当前规划的轨迹，更新定位信息，假设控制完全跟踪规划
-void LocalizationEstimate::UpdateLocalizationInfo(uint64_t time,
-                                                  Trajectory trajectory) {
+void LocalizationEstimate::UpdateLocalizationInfo(
+    const uint64_t time, const Trajectory& trajectory) {
   if (time == 0) {
     localization_info_.x = 0;
     localization_info_.y = 0;
@@ -52,7 +57,6 @@ void LocalizationEstimate::UpdateLocalizationInfo(uint64_t time,
         break;
     }
 
-    //        localization_info_ = trajectory_points[i];
     localization_info_.t = time;
 
     localization_info_.x = trajectory_points[i].x;

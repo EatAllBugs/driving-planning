@@ -1,3 +1,7 @@
+/**
+ * Copyright (C) 2023 by EatAllBugs Limited. All rights reserved.
+ * EatAllBugs <lysxx717@gmail.com>
+ */
 #pragma once
 
 #include <vector>
@@ -8,9 +12,8 @@ class RoutingPath {
  public:
   const std::vector<MapPoint> routing_path_points() const;
 
-  void set_routing_path(const std::vector<MapPoint> routing_path_point);
+  void set_routing_path(const std::vector<MapPoint> &routing_path_point);
   void CreatePath();
-  // 从csv文件中初始化routing_path
   std::vector<MapPoint> GetRoutingPathFromCSV();
 
  private:

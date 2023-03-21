@@ -1,4 +1,7 @@
-
+/**
+ * Copyright (C) 2023 by EatAllBugs Limited. All rights reserved.
+ * EatAllBugs <lysxx717@gmail.com>
+ */
 #include "routing/routing_path.hpp"
 
 #include <fstream>
@@ -13,17 +16,15 @@ const std::vector<MapPoint> RoutingPath::routing_path_points() const {
 }
 
 void RoutingPath::set_routing_path(
-    const std::vector<MapPoint> routing_path_point) {
+    const std::vector<MapPoint> &routing_path_point) {
   routing_path_points_.assign(routing_path_point.begin(),
                               routing_path_point.end());
 }
 
-// 从csv文件中初始化routing_path
 std::vector<MapPoint> RoutingPath::GetRoutingPathFromCSV() {
-  // 读取csv文件
+  std::string csv_path = ".\\file\\routing_path.csv";
 
-  std::ifstream fp(
-      ".\\file\\routing_path.csv");  // 定义声明一个ifstream对象，指定文件路径
+  std::ifstream fp(csv_path);
 
   if (!fp.is_open()) {
     std::cout << "Error: opening file fail" << std::endl;
@@ -31,23 +32,19 @@ std::vector<MapPoint> RoutingPath::GetRoutingPathFromCSV() {
   }
   std::string line;
 
-  std::istringstream sin;  // 将整行字符串line读入到字符串istringstream中
-  std::vector<std::string> words;  // 声明一个字符串向量
+  std::istringstream sin;
+  std::vector<std::string> words;
   std::string word;
 
-  std::getline(fp, line);  // 读取标题行
+  std::getline(fp, line);
   std::vector<MapPoint> path;
-  while (std::getline(fp, line))  // 从文件fp读取一行数据至line
-  {
+  while (std::getline(fp, line)) {
     sin.clear();
     sin.str(line);
     words.clear();
     int col = 1;
     MapPoint point;
-    while (std::getline(
-        sin, word,
-        ','))  // 将字符串流sin中的字符读到field字符串中，以逗号为分隔符
-    {
+    while (std::getline(sin, word, ',')) {
       if (col == 1) {
         point.x = stod(word);
       } else {

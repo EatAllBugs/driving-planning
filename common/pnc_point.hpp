@@ -1,43 +1,42 @@
+/**
+ * Copyright (C) 2023 by EatAllBugs Limited. All rights reserved.
+ * EatAllBugs <lysxx717@gmail.com>
+ */
 #pragma once
 
 namespace ADPlanning {
 
 class MapPoint {
  public:
-  /* data */
   double x;
   double y;
 };
 
 class ReferencePoint : public MapPoint {
  public:
-  /* data */
   double index;
-  double heading;  // 方向角
-  double kappa;    // 曲率
-  double dkappa;   // 曲率的导数
+  double heading;
+  double kappa;
+  double dkappa;
 };
 
 class TrajectoryPoint : public ReferencePoint {
-  /* data */
  public:
-  double v;   // 速度
-  double vx;  // 车身坐标系
+  double v;
+  double vx;
   double vy;
-  double a;  // 加速度
+  double a;
   double ax;
   double ay;
-  double t;  // 时间
+  double t;
 };
 
-/*障碍物的数据类型*/
 class ObstacleInfo : public TrajectoryPoint {
  public:
-  int ID;
+  int id;
   double init_x;
   double init_y;
   double init_heading;
-
   double v;
   double heading;
 };
@@ -46,12 +45,9 @@ class LocalizationInfo : public TrajectoryPoint {
  public:
 };
 
-// SL图点坐标
 class SLPoint {
- private:
-  /* data */
  public:
-  int index;  // 对应参考线的索引
+  int index;
   double s;
   double ds_dt;
   double dds_dt;
@@ -63,8 +59,8 @@ class SLPoint {
   double ddl_ds;
   double dddl_ds;
 
-  double cost2start;  // 起点到该点的cost  这些是对于采样点来说的，其他的用不上
-  int pre_mincost_row;  // 最小cost前一列的行号
+  double cost2start;
+  int pre_mincost_row;
 };
 
 class STPoint {

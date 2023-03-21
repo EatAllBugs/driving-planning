@@ -1,3 +1,7 @@
+/**
+ * Copyright (C) 2023 by EatAllBugs Limited. All rights reserved.
+ * EatAllBugs <lysxx717@gmail.com>
+ */
 #include "plot/plot.hpp"
 
 namespace plt = matplotlibcpp;
@@ -12,13 +16,8 @@ void Plot::PlotRoutingPath(std::vector<MapPoint> routing_path_points,
     y.push_back(point.y);
   }
   plt::plot(x, y, color);
-
-  // std::vector<double> x = {1, 2, 3, 4};
-  // std::vector<double> y = {1, 4, 9, 16};
-
-  // plt::plot(x, y);
-  // plt::show();
 }
+
 void Plot::PlotReferenceLine(ReferenceLine reference_line,
                              const std::string &color) {
   std::vector<double> x, y;
@@ -27,12 +26,6 @@ void Plot::PlotReferenceLine(ReferenceLine reference_line,
     y.push_back(point.y);
   }
   plt::plot(x, y, color);
-
-  // std::vector<double> x = {1, 2, 3, 4};
-  // std::vector<double> y = {1, 4, 9, 16};
-
-  // plt::plot(x, y);
-  // plt::show();
 }
 
 void Plot::PlotTrajetory(Trajectory trajectory, const std::string &color) {
@@ -52,12 +45,6 @@ void Plot::PlotSLPath(std::vector<SLPoint> sl_path_points,
     y.push_back(point.l);
   }
   plt::plot(x, y, color);
-
-  // std::vector<double> x = {1, 2, 3, 4};
-  // std::vector<double> y = {1, 4, 9, 16};
-
-  // plt::plot(x, y);
-  // plt::show();
 }
 
 void Plot::PlotObs(ObstacleInfo obs, const std::string &color) {
@@ -131,4 +118,5 @@ void Plot::PlotSpeedTime(std::vector<STPoint> dp_speed_points,
   }
   plt::plot(t, speed, color);
 }
+
 }  // namespace ADPlanning

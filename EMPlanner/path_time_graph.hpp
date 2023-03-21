@@ -1,5 +1,7 @@
-#pragma once
-// 该类用于维护EMPlaner的st图和sl图。
+/**
+ * Copyright (C) 2023 by EatAllBugs Limited. All rights reserved.
+ * EatAllBugs <lysxx717@gmail.com>
+ */
 #include <float.h>
 
 #include <algorithm>
@@ -16,98 +18,199 @@
 namespace ADPlanning {
 class PathTimeGraph {
  public:
-  // 初始化以参考线和车辆位置信息构建，sl坐标系
   PathTimeGraph(const ReferenceLine &reference_line,
                 const EMPlannerConfig &emplaner_conf);
   ~PathTimeGraph() = default;
 
-  // 将计算vector<point>的sl
-  //  1.计算投影点
-  //  2.XY2XL
-  // 自有信息：reference_line_,
-  // host_project_point_。
-  // 此函数其他地方也可以使用，因此在其中改变其私有变量
+  /**
+   * @brief 笛卡尔坐标系转自然坐标系
+   * @param reference_line
+   * @param sl_reference_line
+   * @param points_wcs
+   * @param match_points
+   * @param project_points
+   * @param points_fcs
+   */
   static void Cartesian2Frenet(
-      const ReferenceLine &reference_line,             // 参考线
-      const std::vector<SLPoint> &sl_reference_line,   // 参考线的sl值
-      const std::vector<TrajectoryPoint> &points_wcs,  // 待转换的点
+      const ReferenceLine &reference_line,
+      const std::vector<SLPoint> &sl_reference_line,
+      const std::vector<TrajectoryPoint> &points_wcs,
       const std::vector<ReferencePoint> &match_points,
-      const std::vector<ReferencePoint>
-          &project_points,  // 待转换点在参考线上的投影点
+      const std::vector<ReferencePoint> &project_points,
       std::vector<SLPoint> &points_fcs);
 
-  // 自然坐标系转笛卡尔坐标系
-  static void Frenet2Cartesian(
-      const ReferenceLine &reference_line,            // 参考线
-      const std::vector<SLPoint> &sl_reference_line,  // 参考线的sl值
-      const std::vector<SLPoint> &points_fcs,         // 待转换的点
-      std::vector<ReferencePoint> *points_wcs);
+  /**
+   * @brief 自然坐标系转笛卡尔坐标系
+   * @param reference_line
+   * @param sl_reference_line
+   * @param points_fcs
+   * @param points_wcs
+   */
+  static void Frenet2Cartesian(const ReferenceLine &reference_line,
+                               const std::vector<SLPoint> &sl_reference_line,
+                               const std::vector<SLPoint> &points_fcs,
+                               std::vector<ReferencePoint> *points_wcs);
 
-  // 1.根据参考线和自车投影点生成s轴
-  // 公用函数其他模块也可以调用。不能使用类内的相关变量
+  /**
+   * @brief 根据参考线和自车投影点生成s轴
+   * @param reference_line
+   * @param sl_reference_line
+   */
   void InitSAxis(const ReferenceLine &reference_line,
                  std::vector<SLPoint> *sl_reference_line);
 
-  // 2.自车sl，记录自车位置。自车投影
-  void SetStartPointSl(TrajectoryPoint plan_start_point);  // 存在问题
-  // 3.障碍物sl，记录障碍物位置。障碍物投影
-  void SetStaticObstaclesSl(
-      const std::vector<ObstacleInfo> static_obstacles);  // 存在问题
+  /**
+   * @brief Set the Start Point Sl object
+   * @param plan_start_point
+   */
+  void SetStartPointSl(const TrajectoryPoint &plan_start_point);
 
-  // 4.dp主算法相关生成采样点
-  void CreateSamplingPoint(
-      const int row, const int col, const double sample_s,
-      const double sample_l);  // 对SamplePoints进行操作，调试完毕
-  double CalcPathCost(SLPoint point1, SLPoint point2);  // 完成调试
+  /**
+   * @brief Set the Static Obstacles Sl object
+   * @param static_obstacles
+   */
+  void SetStaticObstaclesSl(const std::vector<ObstacleInfo> &static_obstacles);
+
+  /**
+   * @brief Create a Sampling Point object
+   * @param row
+   * @param col
+   * @param sample_s
+   * @param sample_l
+   */
+  void CreateSamplingPoint(const int row, const int col, const double sample_s,
+                           const double sample_l);
+
+  /**
+   * @brief 计算路径cost
+   * @param point1
+   * @param point2
+   * @return double
+   */
+  double CalcPathCost(const SLPoint &point1, const SLPoint &point2);
+
+  /**
+   * @brief
+   * @param point1
+   * @param point2
+   * @param QuinticCoeffient
+   */
   void CalcQuinticCoeffient(const SLPoint &point1, const SLPoint &point2,
-                            std::vector<double> *QuinticCoeffient);  // 调试完毕
+                            std::vector<double> *QuinticCoeffient);
+
+  /**
+   * @brief 横向路径动态规划
+   */
   void PathDynamicPlanning();
-  // 5.dp路径插值
-  void DpPathInterpolation(int interpolation_num, double ds);
 
-  const std::vector<SLPoint> dp_path_points() const;  // 动态规划路径点
-  const std::vector<SLPoint> dp_path_points_dense()
-      const;  // 动态规划加密路径点
+  /**
+   * @brief dp路径插值
+   * @param interpolation_num
+   * @param ds
+   */
+  void DpPathInterpolation(const int interpolation_num, const double ds);
 
-  const std::vector<SLPoint> qp_path_points() const;  // 动态规划路径点
-  const std::vector<SLPoint> qp_path_points_dense()
-      const;  // 动态规划加密路径点
+  /**
+   * @brief 动态规划路径点
+   * @return const std::vector<SLPoint>
+   */
+  const std::vector<SLPoint> dp_path_points() const;
 
-  // 二次规划相关
-  // 根据dp_path,输出l_minx,l_max
-  void GenerateConvexSpace(double static_obs_length, double static_obs_width);
-  int FindNearIndex(const std::vector<SLPoint> &dp_path_points_dense, double s);
+  /**
+   * @brief 动态规划稠密路径点
+   * @return const std::vector<SLPoint>
+   */
+  const std::vector<SLPoint> dp_path_points_dense() const;
+
+  /**
+   * @brief 动态规划路径点
+   * @return const std::vector<SLPoint>
+   */
+  const std::vector<SLPoint> qp_path_points() const;
+
+  /**
+   * @brief 动态规划稠密路径点
+   * @return const std::vector<SLPoint>
+   */
+  const std::vector<SLPoint> qp_path_points_dense() const;
+
+  /**
+   * @brief 根据dp_path,输出l_minx,l_max
+   * @param static_obs_length
+   * @param static_obs_width
+   */
+  void GenerateConvexSpace(const double static_obs_length,
+                           const double static_obs_width);
+
+  /**
+   * @brief
+   * @param dp_path_points_dense
+   * @param s
+   * @return int
+   */
+  int FindNearIndex(const std::vector<SLPoint> &dp_path_points_dense,
+                    const double s);
+
+  /**
+   * @brief 二次规划
+   * @return bool
+   */
   bool PathQuadraticProgramming();
-  void QpPathInterpolation(int interpolation_num, double ds);
 
-  void GeneratePlaningPath();
-  void CalcProjPoint(const SLPoint sl_point,
-                     std::vector<SLPoint> sl_reference_line,
-                     const std::vector<ReferencePoint> reference_line,
+  /**
+   * @brief 对路径进行插值处理
+   * @param interpolation_num
+   * @param ds
+   */
+  void QpPathInterpolation(const int interpolation_num, const double ds);
+
+  /**
+   * @brief 生成横向规划路径
+   */
+  void GeneratePlanningPath();
+
+  /**
+   * @brief
+   * @param sl_point
+   * @param sl_reference_line
+   * @param reference_line
+   * @param project_point
+   */
+  void CalcProjPoint(const SLPoint &sl_point,
+                     const std::vector<SLPoint> &sl_reference_line,
+                     const std::vector<ReferencePoint> &reference_line,
                      ReferencePoint &project_point);
-
+  /**
+   * @brief
+   * @return const ReferenceLine
+   */
   const ReferenceLine planning_path() const;
+
+  /**
+   * @brief
+   * @return const SLPoint
+   */
   const SLPoint sl_plan_start() const;
 
  private:
   EMPlannerConfig config_;
 
-  ReferenceLine reference_line_;       // 参考线，世界坐标系
-  ReferencePoint host_match_point_;    // 车辆在参考线的投影点
-  ReferencePoint host_project_point_;  // 车辆在参考线的投影点
-  LocalizationEstimate localization_;  // 车辆的定位信息，世界坐标系
-  std::vector<SLPoint> sl_reference_line_;  // l均为0，s由车辆定位决定
+  ReferenceLine reference_line_;
+  ReferencePoint host_match_point_;
+  ReferencePoint host_project_point_;
+  LocalizationEstimate localization_;
+  std::vector<SLPoint> sl_reference_line_;
 
   SLPoint sl_plan_start_;
-  SLPoint sl_host_;                                  // 自车的sl
-  std::vector<SLPoint> sl_static_obstacles_;         // 静态障碍物的sl
-  std::vector<std::vector<SLPoint>> sample_points_;  // 采样点矩阵
-  std::vector<SLPoint> dp_path_points_;              // 动态规划路径点
-  std::vector<SLPoint> dp_path_points_dense_;  // 动态规划加密路径点
-  std::vector<SLPoint> qp_path_points_;        // 二次规划路径点
-  std::vector<SLPoint> qp_path_points_dense_;  // 增密后的二次规划路径点
+  SLPoint sl_host_;
+  std::vector<SLPoint> sl_static_obstacles_;
+  std::vector<std::vector<SLPoint>> sample_points_;
+  std::vector<SLPoint> dp_path_points_;
+  std::vector<SLPoint> dp_path_points_dense_;
+  std::vector<SLPoint> qp_path_points_;
+  std::vector<SLPoint> qp_path_points_dense_;
 
-  ReferenceLine planning_path_;  // 转换后的世界坐标系轨迹
+  ReferenceLine planning_path_;
 
   Eigen::VectorXd l_min_;
   Eigen::VectorXd l_max_;

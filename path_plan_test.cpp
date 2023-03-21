@@ -1,3 +1,7 @@
+/**
+ * Copyright (C) 2023 by EatAllBugs Limited. All rights reserved.
+ * EatAllBugs <lysxx717@gmail.com>
+ */
 #include <unistd.h>
 
 #include <memory>
@@ -45,7 +49,7 @@ int main(int argc, char const *argv[]) {
   rp.clear();
   reference_line.set_reference_points(rp);
 
-  ADPlanning::ReferenceLine pre_reference_line;  // 上一时刻参考线
+  ADPlanning::ReferenceLine pre_reference_line;
 
   ADPlanning::Trajectory trajectory;
   ADPlanning::Trajectory pre_trajectory;
@@ -54,7 +58,7 @@ int main(int argc, char const *argv[]) {
   localization->UpdateLocalizationInfo(0, trajectory);
   localization_info = localization->localization_info();
 
-  // 2.参考线生成,参考新默认-30m~150m
+  // 参考线生成,参考新默认-30m~150m
   std::unique_ptr<ADPlanning::ReferenceLineProvider> reference_line_provider =
       std::make_unique<ADPlanning::ReferenceLineProvider>();
   pre_reference_line = reference_line;
@@ -81,11 +85,11 @@ int main(int argc, char const *argv[]) {
 
   std::unique_ptr<ADPlanning::Plot> plot = std::make_unique<ADPlanning::Plot>();
 
-  plt::figure(1);  // xy
+  plt::figure(1);
   plot->PlotRoutingPath(routing_path_points, "k");
   plot->PlotReferenceLine(reference_line, "y");
 
-  plt::figure(2);  // sl
+  plt::figure(2);
   plot->PlotSLPath(em_planner->sl_graph_->dp_path_points(), "r");
   plot->PlotSLPath(em_planner->sl_graph_->dp_path_points_dense(), "g");
 
@@ -100,7 +104,7 @@ int main(int argc, char const *argv[]) {
   plot->PlotPlanningPath(
       em_planner->sl_graph_->planning_path().reference_points(), "b");
 
-  plt::figure(3);  // st
+  plt::figure(3);
   plot->PlotSTObs(em_planner->st_graph_->st_obstacles(), "k");
   plot->PlotSTPath(em_planner->st_graph_->dp_speed_points(), "r");
   plt::figure(3);

@@ -1,21 +1,23 @@
+/**
+ * Copyright (C) 2023 by EatAllBugs Limited. All rights reserved.
+ * EatAllBugs <lysxx717@gmail.com>
+ */
+
 #include "speed_time_graph.hpp"
 
 namespace ADPlanning {
-SpeedTimeGraph::SpeedTimeGraph(
-    ReferenceLine planning_path,
-    EMPlannerConfig emplaner_conf)  // 传入规划好的路径
-{
+SpeedTimeGraph::SpeedTimeGraph(const ReferenceLine &planning_path,
+                               const EMPlannerConfig &emplaner_conf) {
   planning_path_ = planning_path;
   emplaner_conf_ = emplaner_conf;
   InitSAxis(planning_path_);
-  // 起点的速度应该等于，规划起点的速度
   st_plan_start_.s = 0;
   st_plan_start_.t = 0;
   st_plan_start_.ds_dt = 0;
   st_plan_start_.dds_dt = 0;
 }
-// 1.基于规划的轨迹，初始化坐标轴
-void SpeedTimeGraph::InitSAxis(const ReferenceLine planning_path) {
+
+void SpeedTimeGraph::InitSAxis(const ReferenceLine &planning_path) {
   std::vector<ReferencePoint> planning_path_points =
       planning_path.reference_points();
   int size = planning_path_points.size();
@@ -44,9 +46,8 @@ void SpeedTimeGraph::SetStartState(const SLPoint &sl_plan_start) {
   st_plan_start_.dds_dt = sl_plan_start.dds_dt;
 }
 
-// 2.计算障碍物的ST位置
 void SpeedTimeGraph::SetDynamicObstaclesSL(
-    const std::vector<ObstacleInfo> dynamic_obstacles) {
+    const std::vector<ObstacleInfo> &dynamic_obstacles) {
   std::vector<MapPoint> obstacles_xy(dynamic_obstacles.size());
 
   for (int i = 0; i < dynamic_obstacles.size(); i++) {
@@ -77,31 +78,28 @@ void SpeedTimeGraph::SetDynamicObstaclesSL(
 void SpeedTimeGraph::GenerateSTGraph() {
   // 该函数生成st图，使用斜直线模型
   for (const auto &obs : sl_dynamic_obstacles_) {
-    // 1.侧向移动缓慢的障碍物,可能是跟车场景和对向行驶场景
+    // 侧向移动缓慢的障碍物,可能是跟车场景和对向行驶场景
     if (abs(obs.dl_dt) < 0.3) {
+      // 横向距离太远，速度规划直接忽略;或者如果障碍物速度大于本次速度则忽略
       if (abs(obs.l) > 2 || obs.ds_dt >= plan_start_.ds_dt)
-        continue;  // 横向距离太远，速度规划直接忽略;或者如果障碍物速度大于本次速度则忽略
+        continue;
       else {
         /*
         % TODO需要做虚拟障碍物
         % 这里由于算力原因没做逻辑
         %
         如何做：感知模块加逻辑，给出障碍物跟踪，判断两帧之间的感知所看到的障碍物是否为同一个
-        %         速度规划模块在一开始先给出虚拟障碍物决策，不做处理
+        % 速度规划模块在一开始先给出虚拟障碍物决策，不做处理
         % 下一帧，路径规划拿到虚拟障碍物标记，规划出绕过去的路径/跟车路径 %
         速度规划计算出速度，绕过去/跟车 % 本算法欠缺的：障碍物结构体
         结构体不仅要包含坐标 速度 还要包含
         决策标记(是否为虚拟障碍物，左绕还是右绕，避让还是超车) %
         感知模块，判断两帧之间的障碍物是否为同一个 %              算力
         */
-        /*1.计算在SL碰撞位置
-         2.自然坐标系转换为世界坐标
-        */
         SLPoint virtual_obstacle;
-        double t_collision = (plan_start_.s - obs.ds_dt) /
-                             (plan_start_.ds_dt - obs.ds_dt);  // 碰撞发生的时间
-        double s_collision =
-            plan_start_.s + t_collision * plan_start_.ds_dt;  // 碰撞发生的位置
+        double t_collision =
+            (plan_start_.s - obs.ds_dt) / (plan_start_.ds_dt - obs.ds_dt);
+        double s_collision = plan_start_.s + t_collision * plan_start_.ds_dt;
         double l_collision = obs.l;
         virtual_obstacle.s = s_collision;
         virtual_obstacle.s = obs.l;
@@ -113,9 +111,8 @@ void SpeedTimeGraph::GenerateSTGraph() {
       }
     }
 
-    // 计算切入切出时间
-    //  t_zero 为动态障碍物的l到0，所需要的时间
-    double t_zero = -obs.l / obs.dl_dt;  // 时间等于路程除以速度
+    // 计算切入切出时间, t_zero 为动态障碍物的l到0, 所需要的时间
+    double t_zero = -obs.l / obs.dl_dt;
     // 计算进出±2的时间
     double t_boundary1 = 2 / obs.dl_dt + t_zero;
     double t_boundary2 = -2 / obs.dl_dt + t_zero;
@@ -132,21 +129,18 @@ void SpeedTimeGraph::GenerateSTGraph() {
     }
     // 鬼探头和远方车辆
     if (t_max < 1 || t_min > 8) continue;
-    /*
-    % 对于切入切出太远的，或者碰瓷的，忽略
-    %
+    /*对于切入切出太远的，或者碰瓷的，忽略
     车辆运动是要受到车辆动力学制约的，如果有碰瓷的，即使规划出了很大的加速度，车辆也执行不了
-    % 碰瓷障碍物也需要做虚拟障碍物和路径规划一起解决。速度规划无法解决
+    碰瓷障碍物也需要做虚拟障碍物和路径规划一起解决。速度规划无法解决
     */
-    // % 在感知看到的时候，障碍物已经在+-2的内部了
+    // 在感知看到的时候，障碍物已经在+-2的内部了
     STLine st_obstacle;
     if (t_min < 0 && t_max > 0) {
       st_obstacle.left_point.s = obs.s;
       st_obstacle.left_point.t = 0;
       st_obstacle.right_point.s = obs.s + obs.ds_dt * t_max;
       st_obstacle.right_point.t = t_max;
-    } else  // 正常障碍物
-    {
+    } else {
       st_obstacle.left_point.s = obs.s + obs.ds_dt * t_min;
       st_obstacle.left_point.t = t_min;
       st_obstacle.right_point.s = obs.s + obs.ds_dt * t_max;
@@ -156,12 +150,10 @@ void SpeedTimeGraph::GenerateSTGraph() {
   }
 }
 
-// 3.采样
-void SpeedTimeGraph::CreateSmaplePoint(int row, int col) {  // row=40,col=16;
-
-  /*% 时间从0到8开始规划，最多8秒
-  % s的范围从0开始到路径规划的path的总长度为止
-  % 为了减少算力 采用非均匀采样，s越小的越密，越大的越稀疏
+void SpeedTimeGraph::CreateSmaplePoint(const int row, const int col) {
+  /*
+  时间从0到8开始规划，最多8秒, s的范围从0开始到路径规划的path的总长度为止,
+  为了减少算力 采用非均匀采样，s越小的越密，越大的越稀疏
   */
   sample_points_.resize(row);
 
@@ -182,7 +174,6 @@ void SpeedTimeGraph::CreateSmaplePoint(int row, int col) {  // row=40,col=16;
   }
 }
 
-// 4.动态规划
 void SpeedTimeGraph::SpeedDynamicPlanning() {
   int row = sample_points_.size();
   int col = sample_points_[0].size();
@@ -229,7 +220,7 @@ void SpeedTimeGraph::SpeedDynamicPlanning() {
     }
   }
 
-  //% 找到dp_node_cost 上边界和右边界代价最小的节点
+  // 找到dp_node_cost 上边界和右边界代价最小的节点
   double min_cost = DBL_MAX;
   double min_row;
   double min_col;
@@ -259,37 +250,34 @@ void SpeedTimeGraph::SpeedDynamicPlanning() {
   }
 
   dp_speed_points.insert(dp_speed_points.begin(), st_plan_start_);
-  // 插入规划起点
   dp_speed_points_ = dp_speed_points;
 }
-double SpeedTimeGraph::CalcDpCost(STPoint &point_s, STPoint &point_e) {
-  /*
-          % 该函数将计算链接两个节点之间边的代价
-            % 输入：边的起点的行列号row_start,col_start
-          边的终点行列号row_end,col_end %
-          障碍物st信息obs_st_s_in_set,obs_st_s_out_set,obs_st_t_in_set,obs_st_t_out_set
-                  %
-          推荐速度代价权重w_cost_ref_speed,加速度代价权重w_cost_accel,障碍物代价权重w_cost_obs
-                  % 推荐速度reference_speed
-                  % 拼接起点的速度plan_start_s_dot
-                  % s_list,t_list 采样距离
-                  % dp_st_s_dot 用于计算加速度
-            % 首先计算终点的st坐标
-        */
 
-  double cur_s_dot =
-      (point_e.s - point_s.s) / (point_e.t - point_s.t);  // 计算速度
-  double cur_s_dot2 =
-      (cur_s_dot - point_s.ds_dt) / (point_e.t - point_s.t);  // 计算加速度
-  // 计算推荐速度代价
+double SpeedTimeGraph::CalcDpCost(const STPoint &point_s,
+                                  const STPoint &point_e) {
+  /*
+    该函数将计算链接两个节点之间边的代价
+    输入：边的起点的行列号row_start,col_start
+    边的终点行列号row_end,col_end %
+    障碍物st信息obs_st_s_in_set,obs_st_s_out_set,obs_st_t_in_set,obs_st_t_out_set
+    推荐速度代价权重w_cost_ref_speed,加速度代价权重w_cost_accel,障碍物代价权重w_cost_obs
+    推荐速度reference_speed
+    拼接起点的速度plan_start_s_dot
+    s_list,t_list 采样距离
+    dp_st_s_dot 用于计算加速度
+    首先计算终点的st坐标
+    */
+  double cur_s_dot = (point_e.s - point_s.s) / (point_e.t - point_s.t);
+  double cur_s_dot2 = (cur_s_dot - point_s.ds_dt) / (point_e.t - point_s.t);
+
   double cost_ref_speed = emplaner_conf_.speed_dp_cost_ref_speed *
                           pow(cur_s_dot - emplaner_conf_.ref_speed, 2);
-  //  % 计算加速度代价，这里注意，加速度不能超过车辆动力学上下限
+  // 计算加速度代价，这里注意，加速度不能超过车辆动力学上下限
   double cost_accel = 0;
   if (cur_s_dot2 < 5 && cur_s_dot2 > -6)
     cost_accel = emplaner_conf_.speed_dp_cost_accel * pow(cur_s_dot2, 2);
   else
-    // % 超过车辆动力学限制，代价会增大很多倍
+    // 超过车辆动力学限制，代价会增大很多倍
     cost_accel =
         100000 * emplaner_conf_.speed_dp_cost_accel * pow(cur_s_dot2, 2);
 
@@ -301,11 +289,11 @@ double SpeedTimeGraph::CalcDpCost(STPoint &point_s, STPoint &point_e) {
 double SpeedTimeGraph::CalcObsCost(const STPoint &point_s,
                                    const STPoint &point_e) {
   /*
-  % 该函数将计算边的障碍物代价
-  % 输入：边的起点终点s_start,t_start,s_end,t_end
-  %       障碍物信息
-  obs_st_s_in_set,obs_st_s_out_set,obs_st_t_in_set,obs_st_t_out_set %
-  障碍物代价权重w_cost_obs % 输出：边的障碍物代价obs_cost % 输出初始化
+  该函数将计算边的障碍物代价
+  输入：边的起点终点s_start,t_start,s_end,t_end
+  障碍物信息 obs_st_s_in_set,obs_st_s_out_set,obs_st_t_in_set,obs_st_t_out_set %
+  障碍物代价权重 w_cost_obs
+  输出：边的障碍物代价obs_cost 输出初始化
   */
   double cost_obs = 0;
   int n = 5;
@@ -315,8 +303,7 @@ double SpeedTimeGraph::CalcObsCost(const STPoint &point_s,
     double t = point_s.t + i * dt;
     double s = point_s.s + k * i * dt;
     double min_dis = 0;
-    for (const auto &obs :
-         st_obstacles_) {  // 计算路径点到障碍物的距离，点到线的距离。
+    for (const auto &obs : st_obstacles_) {
       // 计算点到线的距离，如果垂线在三角形内
       Eigen::Vector2d vector1(obs.left_point.t - t, obs.left_point.s - s);
       Eigen::Vector2d vector2(obs.right_point.t - t, obs.right_point.s - s);
@@ -338,13 +325,14 @@ double SpeedTimeGraph::CalcObsCost(const STPoint &point_s,
   }
 }
 
-double SpeedTimeGraph::CalcCollisionCost(double w_cost_obs, double min_dis) {
+double SpeedTimeGraph::CalcCollisionCost(const double w_cost_obs,
+                                         const double min_dis) {
   double collision_cost = 0;
   if (abs(min_dis) < 0.5)
     collision_cost = 10e6;
   else if (abs(min_dis) >= 0.5 && abs(min_dis) < 2)
-    //  % min_dis = 0.5 collision_cost = w_cost_obs ^ 1;
-    // % min_dis = 1.5 collision_cost = w_cost_obs ^ 0 = 1
+    // min_dis = 0.5 collision_cost = w_cost_obs ^ 1;
+    // min_dis = 1.5 collision_cost = w_cost_obs ^ 0 = 1
     collision_cost = w_cost_obs * pow(1000, 2 - min_dis);
   else
     collision_cost = 0;
@@ -365,8 +353,7 @@ void SpeedTimeGraph::GenerateCovexSpace() {
   // 此处施加动力学约束，通过曲率和横向加速度计算速度限制
   for (int i = 1; i < n; i++) {
     double cur_s = dp_speed_points_[i].s;
-    // 搜索，可以用二分搜索
-    // 计算当前点的曲率，通过插值法
+    // 搜索，可以用二分搜索; 计算当前点的曲率，通过插值法
     int cur_index = 0;
     for (cur_index = 0; cur_index < path_end_index - 1; cur_index++) {
       if (cur_s > sl_planning_path_[cur_index].s &&
@@ -389,13 +376,13 @@ void SpeedTimeGraph::GenerateCovexSpace() {
   }
 
   for (const auto &obs : st_obstacles_) {
-    //  % 取s t 直线的中点，作为obs_s obs_t 的坐标
+    // 取st直线的中点，作为obs_s obs_t的坐标
     double obs_t = (obs.left_point.t + obs.right_point.t) / 2;
     double obs_s = (obs.left_point.s + obs.right_point.s) / 2;
     // 计算障碍物的纵向速度
     double obs_speed = (obs.right_point.s - obs.left_point.s) /
                        (obs.right_point.t - obs.left_point.t);
-    // % 插值找到当t = obs_t时，动态规划的s 的值，用于判断让行还是超车
+    // 插值找到当t = obs_t时，动态规划的s 的值，用于判断让行还是超车
     double mid_index = FindDpMatchIndex(obs_t);
     double mid_k =
         (dp_speed_points_[mid_index + 1].s - dp_speed_points_[mid_index].s) /
@@ -442,16 +429,15 @@ void SpeedTimeGraph::GenerateCovexSpace() {
     //     }
     // }
 
-    // % 这里稍微做个缓冲，把 t_lb_index 稍微缩小一些，t_ub_index稍微放大一些
+    // 这里稍微做个缓冲，把 t_lb_index 稍微缩小一些，t_ub_index稍微放大一些
     t_lb_index = std::max(t_lb_index - 2, 3);
-    //% 最低为3 因为碰瓷没法处理
+    // 最低为3 因为碰瓷没法处理
     t_ub_index = std::min(t_ub_index + 2, dp_end_index);
 
-    if (obs_s > dp_s)  // 决策为减速避让
-    {
+    if (obs_s > dp_s) {
       for (int i = t_lb_index; i < t_ub_index; i++) {
         double dp_t = dp_speed_points_[i].t;
-        // % 在t_lb_index:t_ub_index的区间上 s的上界不可以超过障碍物st斜直线
+        // 在t_lb_index:t_ub_index的区间上 s的上界不可以超过障碍物st斜直线
         convex_s_ub_[i] =
             std::min(convex_s_ub_[i],
                      obs.left_point.s + obs_speed * (dp_t + obs.left_point.t));
@@ -468,14 +454,11 @@ void SpeedTimeGraph::GenerateCovexSpace() {
   }
 }
 
-int SpeedTimeGraph::FindDpMatchIndex(double t) {
+int SpeedTimeGraph::FindDpMatchIndex(const double t) {
   // t_in,t_out对应的动态规划点
   int index = 0;
   for (int j = 0; j < dp_speed_points_.size() - 1; j++) {
-    if (t >= dp_speed_points_[j].t &&
-        t < dp_speed_points_[j + 1]
-                .t) {  //% 否则遍历dp_speed_t
-                       // 找到与obs_st_t_in_set(i)最近的点的编号
+    if (t >= dp_speed_points_[j].t && t < dp_speed_points_[j + 1].t) {
       index = j;
       break;
     }
@@ -483,21 +466,20 @@ int SpeedTimeGraph::FindDpMatchIndex(double t) {
   return index;
 }
 
-// 5.二次规划
+// 二次规划
 bool SpeedTimeGraph::SpeedQuadraticProgramming() {
   /*
-          %速度二次规划
-      % 输入：规划起点plan_start_s_dot,plan_start_s_dot2
-      %       动态规划结果dp_speed_s,dp_speed_t
-      %       凸空间约束 s_lb,s_ub,s_dot_lb,s_dot_ub
-      %
-     加速度代价权重，推荐速度代价权重，jerk代价权重w_cost_s_dot2,w_cost_v_ref,w_cost_jerk
-      %       参考速度speed_reference
-      % 输出：速度曲线qp_s_init,qp_s_dot_init,qp_s_dot2_init,relative_time_init
+      速度二次规划
+      输入：规划起点plan_start_s_dot,plan_start_s_dot2
+           动态规划结果dp_speed_s,dp_speed_t
+           凸空间约束 s_lb,s_ub,s_dot_lb,s_dot_ub
+           加速度代价权重，推荐速度代价权重，jerk代价权重w_cost_s_dot2,w_cost_v_ref,w_cost_jerk
+           参考速度speed_reference
+      输出：速度曲线qp_s_init,qp_s_dot_init,qp_s_dot2_init,relative_time_init
   */
 
-  int n = dp_speed_points_.size();  //??输出
-  // 初始化输出
+  int n = dp_speed_points_.size();
+
   Eigen::VectorXd qp_s(n);
   Eigen::VectorXd qp_ds_dt(n);
   Eigen::VectorXd qp_dds_dt(n);
@@ -542,7 +524,6 @@ bool SpeedTimeGraph::SpeedQuadraticProgramming() {
   Eigen::MatrixXd A_jerk_sub(6, 1);
   A_jerk_sub << 0, 0, 1, 0, 0, -1;
 
-  //??
   for (int i = 0; i < n - 1; i++) {
     A_jerk.insert(3 * i + 2, 3 * i + 2) = 0;
     A_jerk.insert(3 * (i + 1), 3 * (i + 1) + 2) = 0;
@@ -608,11 +589,11 @@ bool SpeedTimeGraph::SpeedQuadraticProgramming() {
   for (int i = 0; i < n; i++) {
     lb(3 * i) = convex_s_lb_(i);
     lb(3 * i + 1) = convex_ds_dt_lb_(i);
-    lb(3 * i + 2) = -6;  // 最小加速度
+    lb(3 * i + 2) = -6;
 
     ub(3 * i) = convex_s_ub_(i);
     ub(3 * i + 1) = convex_ds_dt_ub_(i);
-    ub(3 * i + 2) = 4;  // 最大加速
+    ub(3 * i + 2) = 4;
   }
 
   for (int i = 0; i < n; i++) {
@@ -640,8 +621,7 @@ bool SpeedTimeGraph::SpeedQuadraticProgramming() {
   ub_merge.block(n - 1, 0, 2 * n - 2, 1) = beq;
   ub_merge.block(n - 1 + 2 * n - 2, 0, 3 * n, 1) = ub;
 
-  //-----------------------------------------
-  // osqp的调用---------------------------------------------------------------
+  // osqp的调用
   OsqpEigen::Solver solver;
 
   solver.settings()->setWarmStart(true);
@@ -669,12 +649,10 @@ bool SpeedTimeGraph::SpeedQuadraticProgramming() {
   }
 }
 
-void SpeedTimeGraph::SpeedQpInterpolation(int n)  // 点的个数401
-{
+void SpeedTimeGraph::SpeedQpInterpolation(const int n) {
   /*
       %该函数将增密s s_dot s_dot2
-      %
-     为什么需要增密，因为控制的执行频率是规划的10倍，轨迹点如果不够密，必然会导致规划效果不好
+      %为什么需要增密，因为控制的执行频率是规划的10倍，轨迹点如果不够密，必然会导致规划效果不好
       % 但是若在速度二次规划中点取的太多，会导致二次规划的矩阵规模太大计算太慢
       % 所以方法是在二次规划中选取少量的点优化完毕后，在用此函数增密
   */
@@ -709,8 +687,8 @@ void SpeedTimeGraph::SpeedQpInterpolation(int n)  // 点的个数401
 void SpeedTimeGraph::PathAndSpeedMerge() {
   /*
   该函数将合并path和speed
-  % 由于path 是 61个点，speed 有
-  601个点，合并后，path和speed有601个点，因此需要做插值
+  由于path 是 61个点，speed
+  有601个点，合并后，path和speed有601个点，因此需要做插值
   */
   double cur_t = 0;
   int n = qp_speed_points_dense_.size();
@@ -765,9 +743,7 @@ void SpeedTimeGraph::PathAndSpeedMerge() {
 
 const Trajectory SpeedTimeGraph::trajectory() const { return trajectory_; }
 
-const std::vector<ObstacleInfo> SpeedTimeGraph::xy_virtual_obstacles() const {
-
-}  // 虚拟障碍物的xy坐标
+const std::vector<ObstacleInfo> SpeedTimeGraph::xy_virtual_obstacles() const {}
 
 std::vector<STLine> SpeedTimeGraph::st_obstacles() { return st_obstacles_; }
 
