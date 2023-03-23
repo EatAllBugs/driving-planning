@@ -5,19 +5,17 @@
 
 #pragma once
 
+#include <OsqpEigen/OsqpEigen.h>
 #include <float.h>
 
 #include <algorithm>
 #include <vector>
 
-#include "OsqpEigen/OsqpEigen.h"
+#include "EMPlanner/trajectory.hpp"
 #include "config/EMPlanner_config.hpp"
-#include "eigen3/Eigen/Eigen"
 #include "localization/localization_estimate.hpp"
-#include "path_time_graph.hpp"
 #include "perception/perception_obstacle.hpp"
 #include "reference_line/reference_line_provider.hpp"
-#include "trajectory.hpp"
 
 namespace ADPlanning {
 class SpeedTimeGraph {

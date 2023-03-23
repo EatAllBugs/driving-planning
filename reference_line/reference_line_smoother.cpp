@@ -4,8 +4,7 @@
  */
 #include "reference_line/reference_line_smoother.hpp"
 
-#include "OsqpEigen/OsqpEigen.h"
-#include "eigen3/Eigen/Eigen"
+#include <OsqpEigen/OsqpEigen.h>
 namespace ADPlanning {
 
 ReferenceLineSmoother::ReferenceLineSmoother(

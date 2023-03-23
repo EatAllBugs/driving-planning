@@ -2,7 +2,7 @@
  * Copyright (C) 2023 by EatAllBugs Limited. All rights reserved.
  * EatAllBugs <lysxx717@gmail.com>
  */
-#include "perception_obstacle.hpp"
+#include "perception/perception_obstacle.hpp"
 
 namespace ADPlanning {
 const std::vector<ObstacleInfo> PerceptionObstacle::static_obstacles() const {

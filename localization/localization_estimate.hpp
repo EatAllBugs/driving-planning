@@ -7,8 +7,6 @@
 
 #include <stdint.h>
 
-#include <cinttypes>
-
 #include "EMPlanner/trajectory.hpp"
 namespace ADPlanning {
 class LocalizationEstimate {

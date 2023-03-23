@@ -3,7 +3,7 @@
  * EatAllBugs <lysxx717@gmail.com>
  */
 
-#include "trajectory.hpp"
+#include "EMPlanner/trajectory.hpp"
 namespace ADPlanning {
 
 Trajectory::Trajectory() {}

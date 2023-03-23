@@ -5,14 +5,15 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include "EMPlanner/path_time_graph.hpp"
 #include "EMPlanner/speed_time_graph.hpp"
+#include "EMPlanner/trajectory.hpp"
 #include "config/EMPlanner_config.hpp"
 #include "localization/localization_estimate.hpp"
 #include "perception/perception_obstacle.hpp"
 #include "reference_line/reference_line.hpp"
-#include "trajectory.hpp"
 
 namespace ADPlanning {
 class EMPlanner {
@@ -61,15 +62,15 @@ class EMPlanner {
   void StitchTrajectory(const Trajectory &cur_traj,
                         const Trajectory &stitch_traj, Trajectory &final_traj);
 
-  const std::unique_ptr<PathTimeGraph> SLGraph() const;
-  const std::unique_ptr<SpeedTimeGraph> STGraph() const;
+  const std::shared_ptr<PathTimeGraph> SLGraph() const;
+  const std::shared_ptr<SpeedTimeGraph> STGraph() const;
 
  private:
   EMPlannerConfig config_;
   Trajectory trajectory_;
   Trajectory pre_trajectory_;
-  std::unique_ptr<PathTimeGraph> sl_graph_;
-  std::unique_ptr<SpeedTimeGraph> st_graph_;
+  std::shared_ptr<PathTimeGraph> sl_graph_;
+  std::shared_ptr<SpeedTimeGraph> st_graph_;
 };
 
 }  // namespace ADPlanning

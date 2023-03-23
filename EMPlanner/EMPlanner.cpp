@@ -2,7 +2,7 @@
  * Copyright (C) 2023 by EatAllBugs Limited. All rights reserved.
  * EatAllBugs <lysxx717@gmail.com>
  */
-#include "EMPlanner.hpp"
+#include "EMPlanner/EMPlanner.hpp"
 
 #include <cmath>
 #include <memory>
@@ -179,11 +179,11 @@ void EMPlanner::StitchTrajectory(const Trajectory &cur_traj,
   final_traj.set_trajectory_points(stitch_traj_points);
 }
 
-const std::unique_ptr<PathTimeGraph> EMPlanner::SLGraph() const {
+const std::shared_ptr<PathTimeGraph> EMPlanner::SLGraph() const {
   return sl_graph_;
 };
 
-const std::unique_ptr<SpeedTimeGraph> EMPlanner::STGraph() const {
+const std::shared_ptr<SpeedTimeGraph> EMPlanner::STGraph() const {
   return st_graph_;
 };
 

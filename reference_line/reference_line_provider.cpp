@@ -2,7 +2,7 @@
  * Copyright (C) 2023 by EatAllBugs Limited. All rights reserved.
  * EatAllBugs <lysxx717@gmail.com>
  */
-#include "reference_line_provider.hpp"
+#include "reference_line/reference_line_provider.hpp"
 
 #include <limits>
 

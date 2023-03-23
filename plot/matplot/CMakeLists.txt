@@ -1,9 +1,6 @@
-set(Python3_INCLUDE_DIRS "/usr/include/python3.5m")
-set(Python3_LIBRARIES "/usr/lib/python3.5/config-3.5m-x86_64-linux-gnu/libpython3.5m.so")
-set(PYTHON_EXECUTABLE "/usr/bin/python3.5")
-
-# set(Numpy_INCLUDE_DIRS "/usr/include/python3.6m/numpy")
-# set(Numpy_LIBRARIES "/usr/lib/x86_64-linux-gnu/libboost_numpy.so")
+set(Python3_INCLUDE_DIRS "/usr/include/python3.6m")
+set(Python3_LIBRARIES "/usr/lib/python3.6/config-3.6m-x86_64-linux-gnu/libpython3.6m.so")
+set(PYTHON_EXECUTABLE "/usr/bin/python3.6")
 
 # Library target
 add_library(matplotlib_cpp INTERFACE)

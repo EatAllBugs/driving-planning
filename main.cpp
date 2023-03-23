@@ -11,8 +11,9 @@
 3.调用EMPlanner算法进行Planning
 */
 
-#include <ctime>
+#include <chrono>
 #include <memory>
+#include <thread>
 
 #include "EMPlanner/EMPlanner.hpp"
 #include "localization/localization_estimate.hpp"
@@ -59,7 +60,7 @@ int main(int argc, char const *argv[]) {
       localization->UpdateLocalizationInfo(time, trajectory);
       localization_info = localization->localization_info();
       // 更新障碍物信息
-      perception->UpdateObstacleInfo();
+      perception->UpdateObstacleInfo(0.1, localization_info);
     }
     // 每100ms 循环执行一次
     if ((time % 100) < 1e-10) {
@@ -79,13 +80,14 @@ int main(int argc, char const *argv[]) {
       pre_trajectory = trajectory;
       em_planner->CalPlaningStartPoint(pre_trajectory, localization_info,
                                        &plan_start, &stitch_trajectory);
-      std::vector<ADPlanning::ReferencePoint> xy_virtual_obstacles;
-      em_planner->Plan(time, plan_start, reference_line, localization,
-                       perception, trajectory, xy_virtual_obstacles);
-      perception->UpdateVirtualObstacle(xy_virtual_obstacles);
+      std::vector<ADPlanning::ObstacleInfo> xy_virtual_obstacles;
+      em_planner->Plan(time, plan_start, reference_line, localization_info,
+                       perception->static_obstacles(),
+                       perception->dynamic_obstacles(), &trajectory,
+                       xy_virtual_obstacles);
     }
     time++;
-    std::usleep(1000);
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
   }
   return 0;
 }

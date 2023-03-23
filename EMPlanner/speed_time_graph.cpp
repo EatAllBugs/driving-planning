@@ -3,7 +3,9 @@
  * EatAllBugs <lysxx717@gmail.com>
  */
 
-#include "speed_time_graph.hpp"
+#include "EMPlanner/speed_time_graph.hpp"
+
+#include "EMPlanner/path_time_graph.hpp"
 
 namespace ADPlanning {
 SpeedTimeGraph::SpeedTimeGraph(const ReferenceLine &planning_path,
@@ -200,8 +202,8 @@ void SpeedTimeGraph::SpeedDynamicPlanning() {
         //      (sample_points_[i][j].s - sample_points_[k][j - 1].s) /
         //      (sample_points_[i][j].t - sample_points_[k][j - 1].t);
         //  sample_points_[i][j].dds_dt =
-        //      (sample_points_[i][j].ds_dt - sample_points_[k][j - 1].ds_dt) /
-        //      (sample_points_[i][j].t - sample_points_[k][j - 1].t);
+        //      (sample_points_[i][j].ds_dt - sample_points_[k][j - 1].ds_dt)
+        //      / (sample_points_[i][j].t - sample_points_[k][j - 1].t);
 
         double cost =
             sample_points_[k][j - 1].cost2start +
@@ -291,9 +293,8 @@ double SpeedTimeGraph::CalcObsCost(const STPoint &point_s,
   /*
   该函数将计算边的障碍物代价
   输入：边的起点终点s_start,t_start,s_end,t_end
-  障碍物信息 obs_st_s_in_set,obs_st_s_out_set,obs_st_t_in_set,obs_st_t_out_set %
-  障碍物代价权重 w_cost_obs
-  输出：边的障碍物代价obs_cost 输出初始化
+  障碍物信息 obs_st_s_in_set,obs_st_s_out_set,obs_st_t_in_set,obs_st_t_out_set
+  % 障碍物代价权重 w_cost_obs 输出：边的障碍物代价obs_cost 输出初始化
   */
   double cost_obs = 0;
   int n = 5;

@@ -90,28 +90,28 @@ int main(int argc, char const *argv[]) {
   plot->PlotReferenceLine(reference_line, "y");
 
   plt::figure(2);
-  plot->PlotSLPath(em_planner->sl_graph_->dp_path_points(), "r");
-  plot->PlotSLPath(em_planner->sl_graph_->dp_path_points_dense(), "g");
+  plot->PlotSLPath(em_planner->SLGraph()->dp_path_points(), "r");
+  plot->PlotSLPath(em_planner->SLGraph()->dp_path_points_dense(), "g");
 
   for (const auto obs : static_obstacle_info) {
     plot->PlotObs(obs, "k");
   }
 
-  plot->PlotSLPath(em_planner->sl_graph_->qp_path_points(), "r");
+  plot->PlotSLPath(em_planner->SLGraph()->qp_path_points(), "r");
 
-  plot->PlotSLPath(em_planner->sl_graph_->qp_path_points_dense(), "p");
+  plot->PlotSLPath(em_planner->SLGraph()->qp_path_points_dense(), "p");
 
   plot->PlotPlanningPath(
-      em_planner->sl_graph_->planning_path().reference_points(), "b");
+      em_planner->SLGraph()->planning_path().reference_points(), "b");
 
   plt::figure(3);
-  plot->PlotSTObs(em_planner->st_graph_->st_obstacles(), "k");
-  plot->PlotSTPath(em_planner->st_graph_->dp_speed_points(), "r");
+  plot->PlotSTObs(em_planner->STGraph()->st_obstacles(), "k");
+  plot->PlotSTPath(em_planner->STGraph()->dp_speed_points(), "r");
   plt::figure(3);
-  plot->PlotSTPath(em_planner->st_graph_->qp_speed_points(), "b");
+  plot->PlotSTPath(em_planner->STGraph()->qp_speed_points(), "b");
 
   plt::figure(3);
-  plot->PlotSTPath(em_planner->st_graph_->qp_speed_points_dense(), "g");
+  plot->PlotSTPath(em_planner->STGraph()->qp_speed_points_dense(), "g");
 
   plt::show();
   return 0;

@@ -38,7 +38,7 @@ class PerceptionObstacle {
    * @param xy_virtual_obstacles
    */
   void UpdateVirtualObstacle(
-      const std::vector<ReferencePoint> &xy_virtual_obstacles);
+      const std::vector<ObstacleInfo> &xy_virtual_obstacles);
 
   /**
    * @brief

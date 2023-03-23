@@ -2,15 +2,14 @@
  * Copyright (C) 2023 by EatAllBugs Limited. All rights reserved.
  * EatAllBugs <lysxx717@gmail.com>
  */
+#include <OsqpEigen/OsqpEigen.h>
 #include <float.h>
 
 #include <algorithm>
 #include <vector>
 
-#include "OsqpEigen/OsqpEigen.h"
 #include "common/pnc_point.hpp"
 #include "config/EMPlanner_config.hpp"
-#include "eigen3/Eigen/Eigen"
 #include "localization/localization_estimate.hpp"
 #include "perception/perception_obstacle.hpp"
 #include "reference_line/reference_line_provider.hpp"
@@ -162,7 +161,7 @@ class PathTimeGraph {
    * @param interpolation_num
    * @param ds
    */
-  void QpPathInterpolation(const int interpolation_num, const double ds);
+  void QpPathInterpolation(const int interpolation_num, double ds);
 
   /**
    * @brief 生成横向规划路径

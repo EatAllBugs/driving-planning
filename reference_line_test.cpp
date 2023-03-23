@@ -23,14 +23,14 @@ int main(int argc, char const *argv[]) {
 
   // 构造路由模块指针
   std::unique_ptr<ADPlanning::RoutingPath> routing_path =
-      std::make_unique<RoutingPath>();
+      std::make_unique<ADPlanning::RoutingPath>();
 
   // 定位信息指针
   std::unique_ptr<ADPlanning::LocalizationEstimate> localization =
-      std::make_unique<LocalizationEstimate>();
+      std::make_unique<ADPlanning::LocalizationEstimate>();
   // 障碍物信息
   std::unique_ptr<ADPlanning::PerceptionObstacle> perception =
-      std::make_unique<PerceptionObstacle>();
+      std::make_unique<ADPlanning::PerceptionObstacle>();
   // 构造全局路径
 
   routing_path->CreatePath();
@@ -53,7 +53,7 @@ int main(int argc, char const *argv[]) {
   // 传参应该是数据类型，而不是类的对象
   reference_line_provider->Provide(routing_path_points, localization_info,
                                    pre_reference_line, reference_line);
-  std::unique_ptr<Plot> plot = std::make_unique<ADPlanning::Plot>();
+  std::unique_ptr<ADPlanning::Plot> plot = std::make_unique<ADPlanning::Plot>();
 
   plot->PlotRoutingPath(routing_path_points, "k");
   plot->PlotReferenceLine(reference_line, "y");

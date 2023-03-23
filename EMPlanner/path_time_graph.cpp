@@ -2,7 +2,7 @@
  * Copyright (C) 2023 by EatAllBugs Limited. All rights reserved.
  * EatAllBugs <lysxx717@gmail.com>
  */
-#include "path_time_graph.hpp"
+#include "EMPlanner/path_time_graph.hpp"
 
 namespace ADPlanning {
 PathTimeGraph::PathTimeGraph(const ReferenceLine &reference_line,
@@ -21,7 +21,7 @@ void PathTimeGraph::InitSAxis(const ReferenceLine &reference_line,
   int len = reference_points.size();
   (*sl_reference_line).resize(len);
 
-  (*sl_reference_line).begin().s = 0;
+  (*sl_reference_line).begin()->s = 0;
   for (int i = 1; i < len - 1; i++) {
     (*sl_reference_line)[i].s =
         sqrt(pow(reference_points[i].x - reference_points[i - 1].x, 2) +
@@ -799,7 +799,7 @@ bool PathTimeGraph::PathQuadraticProgramming() {
 //   qp_path_points_dense_ = qp_path_points_dense;
 // }
 
-void PathTimeGraph::QpPathInterpolation(const int num, const double ds) {
+void PathTimeGraph::QpPathInterpolation(const int num, double ds) {
   std::vector<SLPoint> qp_path_points_dense;
   qp_path_points_dense.resize(num);
   qp_path_points_dense[0] = qp_path_points_[0];
