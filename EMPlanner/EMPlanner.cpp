@@ -98,9 +98,11 @@ void EMPlanner::CalPlaningStartPoint(const Trajectory &pre_traj,
     auto d_err = std::make_pair(local_info.x - pre_x_desire,
                                 local_info.y - pre_y_desire);
     // 纵向误差
-    double lon_err = abs(d_err.first * tor.first + d_err.second * tor.second);
+    double lon_err =
+        std::fabs(d_err.first * tor.first + d_err.second * tor.second);
     // 横向误差
-    double lat_err = abs(d_err.first * nor.first + d_err.second * nor.second);
+    double lat_err =
+        std::fabs(d_err.first * nor.first + d_err.second * nor.second);
     // 纵向误差大于2.5 横向误差大于0.5 认为控制没跟上
     double dt = 0.1;
     if ((lon_err > 2.5) || (lat_err > 0.5)) {
@@ -111,7 +113,7 @@ void EMPlanner::CalPlaningStartPoint(const Trajectory &pre_traj,
       plan_start_point->vx = vx_cur + ax_cur * dt;
       plan_start_point->vy = vy_cur + ay_cur * dt;
       plan_start_point->heading =
-          atan2(plan_start_point->vy, plan_start_point->vx);
+          std::atan2(plan_start_point->vy, plan_start_point->vx);
       plan_start_point->ax = ax_cur;
       plan_start_point->ay = ay_cur;
       plan_start_point->kappa = kappa_cur;

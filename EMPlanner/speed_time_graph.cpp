@@ -32,8 +32,11 @@ void SpeedTimeGraph::InitSAxis(const ReferenceLine &planning_path) {
   for (int i = 1; i < size; i++) {
     ds2start =
         ds2start +
-        sqrt(pow(planning_path_points[i].x - planning_path_points[i - 1].x, 2) +
-             pow(planning_path_points[i].y - planning_path_points[i - 1].y, 2));
+        std::sqrt(
+            std::pow(planning_path_points[i].x - planning_path_points[i - 1].x,
+                     2) +
+            std::pow(planning_path_points[i].y - planning_path_points[i - 1].y,
+                     2));
     sl_planning_path[i].s = ds2start;
     sl_planning_path[i].index = i;
   }
@@ -273,15 +276,15 @@ double SpeedTimeGraph::CalcDpCost(const STPoint &point_s,
   double cur_s_dot2 = (cur_s_dot - point_s.ds_dt) / (point_e.t - point_s.t);
 
   double cost_ref_speed = emplaner_conf_.speed_dp_cost_ref_speed *
-                          pow(cur_s_dot - emplaner_conf_.ref_speed, 2);
+                          std::pow(cur_s_dot - emplaner_conf_.ref_speed, 2);
   // 计算加速度代价，这里注意，加速度不能超过车辆动力学上下限
   double cost_accel = 0;
   if (cur_s_dot2 < 5 && cur_s_dot2 > -6)
-    cost_accel = emplaner_conf_.speed_dp_cost_accel * pow(cur_s_dot2, 2);
+    cost_accel = emplaner_conf_.speed_dp_cost_accel * std::pow(cur_s_dot2, 2);
   else
     // 超过车辆动力学限制，代价会增大很多倍
     cost_accel =
-        100000 * emplaner_conf_.speed_dp_cost_accel * pow(cur_s_dot2, 2);
+        100000 * emplaner_conf_.speed_dp_cost_accel * std::pow(cur_s_dot2, 2);
 
   double cost_obs = CalcObsCost(point_s, point_e);
 
@@ -309,10 +312,10 @@ double SpeedTimeGraph::CalcObsCost(const STPoint &point_s,
       Eigen::Vector2d vector1(obs.left_point.t - t, obs.left_point.s - s);
       Eigen::Vector2d vector2(obs.right_point.t - t, obs.right_point.s - s);
       Eigen::Vector2d vector3 = vector2 - vector1;
-      double dis1 = sqrt(vector1.transpose() * vector1);
-      double dis2 = sqrt(vector2.transpose() * vector2);
+      double dis1 = std::sqrt(vector1.transpose() * vector1);
+      double dis2 = std::sqrt(vector2.transpose() * vector2);
       double dis3 = abs(vector1.transpose() * vector2) /
-                    sqrt(vector3.transpose() * vector3);
+                    std::sqrt(vector3.transpose() * vector3);
       if ((vector1.transpose() * vector3 > 0 &&
            vector2.transpose() * vector3 > 0) ||
           (vector1.transpose() * vector3 < 0 &&
@@ -334,7 +337,7 @@ double SpeedTimeGraph::CalcCollisionCost(const double w_cost_obs,
   else if (abs(min_dis) >= 0.5 && abs(min_dis) < 2)
     // min_dis = 0.5 collision_cost = w_cost_obs ^ 1;
     // min_dis = 1.5 collision_cost = w_cost_obs ^ 0 = 1
-    collision_cost = w_cost_obs * pow(1000, 2 - min_dis);
+    collision_cost = w_cost_obs * std::pow(1000, 2 - min_dis);
   else
     collision_cost = 0;
 
@@ -370,7 +373,7 @@ void SpeedTimeGraph::GenerateCovexSpace() {
                        k * (cur_s - sl_planning_path_[cur_index].s);
 
     double max_speed =
-        sqrt(emplaner_conf_.max_lateral_accel / (abs(cur_kappa) + 1e-10));
+        std::sqrt(emplaner_conf_.max_lateral_accel / (abs(cur_kappa) + 1e-10));
     double min_speed = 0;
     convex_ds_dt_lb_(i) = min_speed;
     convex_ds_dt_ub_(i) = max_speed;
@@ -554,18 +557,18 @@ bool SpeedTimeGraph::SpeedQuadraticProgramming() {
   double dt = dp_speed_points_[1].t;
 
   Eigen::MatrixXd A_sub(6, 2);
-  A_sub << 1, 0, dt, 1, (1 / 3) * pow(dt, 2), (1 / 2) * dt, -1, 0, 0, -1,
-      (1 / 6) * pow(dt, 2), dt / 2;
+  A_sub << 1, 0, dt, 1, (1 / 3) * std::pow(dt, 2), (1 / 2) * dt, -1, 0, 0, -1,
+      (1 / 6) * std::pow(dt, 2), dt / 2;
   index_start = n - 1;
   for (int i = 0; i < n - 1; i++) {
     double row = index_start + i * 2;
     double col = i * 3;
     A_merge.insert(row, col) = 1;
     A_merge.insert(row, col + 1) = dt;
-    A_merge.insert(row, col + 2) = (1 / 3) * pow(dt, 2);
+    A_merge.insert(row, col + 2) = (1 / 3) * std::pow(dt, 2);
     A_merge.insert(row, col + 3) = -1;
     A_merge.insert(row, col + 4) = 0;
-    A_merge.insert(row, col + 5) = (1 / 6) * pow(dt, 3);
+    A_merge.insert(row, col + 5) = (1 / 6) * std::pow(dt, 3);
 
     A_merge.insert(row + 1, col) = 0;
     A_merge.insert(row + 1, col + 1) = 1;
@@ -673,8 +676,8 @@ void SpeedTimeGraph::SpeedQpInterpolation(const int n) {
     double dt_2pre = cur_t - qp_speed_points_[j].t;
     qp_speed_points_dense_[i].s =
         qp_speed_points_[j].s + qp_speed_points_[j].ds_dt * dt_2pre +
-        (1 / 3) * qp_speed_points_[j].dds_dt * pow(dt_2pre, 2) +
-        (1 / 6) * qp_speed_points_[j + 1].dds_dt * pow(dt_2pre, 3);
+        (1 / 3) * qp_speed_points_[j].dds_dt * std::pow(dt_2pre, 2) +
+        (1 / 6) * qp_speed_points_[j + 1].dds_dt * std::pow(dt_2pre, 3);
     qp_speed_points_dense_[i].ds_dt =
         qp_speed_points_[j].ds_dt + 0.5 * qp_speed_points_[j].dds_dt * dt_2pre;
     qp_speed_points_dense_[i].dds_dt =

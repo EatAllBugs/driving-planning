@@ -24,8 +24,8 @@ void PathTimeGraph::InitSAxis(const ReferenceLine &reference_line,
   (*sl_reference_line).begin()->s = 0;
   for (int i = 1; i < len - 1; i++) {
     (*sl_reference_line)[i].s =
-        sqrt(pow(reference_points[i].x - reference_points[i - 1].x, 2) +
-             pow(reference_points[i].y - reference_points[i - 1].y, 2)) +
+        std::sqrt(pow(reference_points[i].x - reference_points[i - 1].x, 2) +
+                  pow(reference_points[i].y - reference_points[i - 1].y, 2)) +
         (*sl_reference_line)[i - 1].s;
   }
 
@@ -42,11 +42,11 @@ void PathTimeGraph::InitSAxis(const ReferenceLine &reference_line,
   if (vector_project_match.first * vector_match_next.first +
           vector_project_match.second * vector_match_next.second >
       0)
-    s0 = s_host_match + sqrt(pow(vector_project_match.first, 2) +
-                             pow(vector_project_match.second, 2));
+    s0 = s_host_match + std::sqrt(pow(vector_project_match.first, 2) +
+                                  pow(vector_project_match.second, 2));
   else
-    s0 = s_host_match - sqrt(pow(vector_project_match.first, 2) +
-                             pow(vector_project_match.second, 2));
+    s0 = s_host_match - std::sqrt(pow(vector_project_match.first, 2) +
+                                  pow(vector_project_match.second, 2));
 
   for (int i = 0; i < len; i++) {
     (*sl_reference_line)[i].s = (*sl_reference_line)[i].s - s0;
@@ -155,13 +155,13 @@ void PathTimeGraph::Cartesian2Frenet(
         0) {
       points_fcs[i].s =
           sl_reference_line[(match_points[i].index)].s +
-          sqrt(vector_porj2mactch.first * vector_porj2mactch.first +
-               vector_porj2mactch.second + vector_porj2mactch.second);
+          std::sqrt(vector_porj2mactch.first * vector_porj2mactch.first +
+                    vector_porj2mactch.second + vector_porj2mactch.second);
     } else {
       points_fcs[i].s =
           sl_reference_line[(match_points[i].index)].s -
-          sqrt(vector_porj2mactch.first * vector_porj2mactch.first +
-               vector_porj2mactch.second + vector_porj2mactch.second);
+          std::sqrt(vector_porj2mactch.first * vector_porj2mactch.first +
+                    vector_porj2mactch.second + vector_porj2mactch.second);
     }
 
     // l=(o_h-o_r)*n_r,h为待求点,r为参考线投影点,o为原点

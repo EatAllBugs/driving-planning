@@ -89,7 +89,7 @@ class PathTimeGraph {
   double CalcPathCost(const SLPoint &point1, const SLPoint &point2);
 
   /**
-   * @brief
+   * @brief 计算五次多项式系数
    * @param point1
    * @param point2
    * @param QuinticCoeffient
@@ -142,7 +142,7 @@ class PathTimeGraph {
                            const double static_obs_width);
 
   /**
-   * @brief
+   * @brief 根据s找到最近点的索引
    * @param dp_path_points_dense
    * @param s
    * @return int
@@ -151,7 +151,7 @@ class PathTimeGraph {
                     const double s);
 
   /**
-   * @brief 二次规划
+   * @brief 二次规划生成横向路径
    * @return bool
    */
   bool PathQuadraticProgramming();
@@ -169,7 +169,7 @@ class PathTimeGraph {
   void GeneratePlanningPath();
 
   /**
-   * @brief
+   * @brief 计算交点
    * @param sl_point
    * @param sl_reference_line
    * @param reference_line
@@ -180,13 +180,13 @@ class PathTimeGraph {
                      const std::vector<ReferencePoint> &reference_line,
                      ReferencePoint &project_point);
   /**
-   * @brief
+   * @brief 横向规划轨迹长度
    * @return const ReferenceLine
    */
   const ReferenceLine planning_path() const;
 
   /**
-   * @brief
+   * @brief 规划起点
    * @return const SLPoint
    */
   const SLPoint sl_plan_start() const;
@@ -195,21 +195,20 @@ class PathTimeGraph {
   EMPlannerConfig config_;
 
   ReferenceLine reference_line_;
+  ReferenceLine planning_path_;
   ReferencePoint host_match_point_;
   ReferencePoint host_project_point_;
   LocalizationEstimate localization_;
-  std::vector<SLPoint> sl_reference_line_;
 
   SLPoint sl_plan_start_;
   SLPoint sl_host_;
+  std::vector<SLPoint> sl_reference_line_;
   std::vector<SLPoint> sl_static_obstacles_;
-  std::vector<std::vector<SLPoint>> sample_points_;
   std::vector<SLPoint> dp_path_points_;
   std::vector<SLPoint> dp_path_points_dense_;
   std::vector<SLPoint> qp_path_points_;
   std::vector<SLPoint> qp_path_points_dense_;
-
-  ReferenceLine planning_path_;
+  std::vector<std::vector<SLPoint>> sample_points_;
 
   Eigen::VectorXd l_min_;
   Eigen::VectorXd l_max_;

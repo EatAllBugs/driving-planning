@@ -25,7 +25,7 @@ class SpeedTimeGraph {
   ~SpeedTimeGraph() = default;
 
   /**
-   * @brief
+   * @brief 返回生成轨迹
    * @return const Trajectory
    */
   const Trajectory trajectory() const;
@@ -61,7 +61,7 @@ class SpeedTimeGraph {
   const std::vector<STPoint> qp_speed_points_dense() const;
 
   /**
-   * @brief 基于规划的轨迹，初始化坐标轴
+   * @brief 基于规划的轨迹，初始化s坐标轴
    * @param planning_path
    */
   void InitSAxis(const ReferenceLine &planning_path);
@@ -92,12 +92,12 @@ class SpeedTimeGraph {
   void CreateSmaplePoint(const int row, const int col);
 
   /**
-   * @brief
+   * @brief 速度动态规划
    */
   void SpeedDynamicPlanning();
 
   /**
-   * @brief
+   * @brief 计算动态规划的cost
    * @param point_s
    * @param point_e
    * @return double
@@ -105,7 +105,7 @@ class SpeedTimeGraph {
   double CalcDpCost(const STPoint &point_s, const STPoint &point_e);
 
   /**
-   * @brief
+   * @brief 计算障碍物的代价
    * @param point_s
    * @param point_e
    * @return double
@@ -113,7 +113,7 @@ class SpeedTimeGraph {
   double CalcObsCost(const STPoint &point_s, const STPoint &point_e);
 
   /**
-   * @brief
+   * @brief 计算碰撞代价
    * @param w_cost_obs
    * @param min_dis
    * @return double

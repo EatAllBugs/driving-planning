@@ -22,7 +22,7 @@ class EMPlanner {
   ~EMPlanner() = default;
 
   /**
-   * @brief 轨迹规划函数入口
+   * @brief EMPlanner轨迹规划函数入口
    * @param current_time
    * @param planning_init_point
    * @param reference_line
@@ -32,11 +32,11 @@ class EMPlanner {
    * @param trajectory
    * @param xy_virtual_obstacles
    */
-  void Plan(const uint64_t current_time,
+  void Plan(const u_int64_t current_time,
             const TrajectoryPoint &planning_init_point,
             const ReferenceLine &reference_line,
-            const LocalizationInfo &localization,
-            const std::vector<ObstacleInfo> &obstacle,
+            const LocalizationInfo &localization_info,
+            const std::vector<ObstacleInfo> &static_obstacles,
             const std::vector<ObstacleInfo> &dynamic_obstacles,
             Trajectory *trajectory,
             std::vector<ObstacleInfo> &xy_virtual_obstacles);
